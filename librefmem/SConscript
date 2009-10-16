@@ -3,18 +3,13 @@
 # librefmem
 #
 
-Import ('env')
-
-dir = env['BUILD_DIR']
-target = env['TARG']
-libdir = env['INSTLIBDIR']
-toplevel = env['TOPLEVEL']
+Import('env')
 
 src = [ 'alloc.c', 'debug.c' ]
 
-static = env.StaticLibrary('refmem', src, CPPPATH = [ env['INCDIR'], '.', toplevel + '/dongle/install/' + target + '/include' ])
-shared = env.SharedLibrary('refmem', src, CPPPATH = [ env['INCDIR'],  '.', toplevel + '/dongle/install/' + target + '/include' ])
+static = env.StaticLibrary('refmem', src, CPPPATH = [ '../include', '.' ])
+shared = env.SharedLibrary('refmem', src, CPPPATH = [ '../include', '.' ])
 
-inst = env.Install(libdir, [ static, shared ])
+inst = [ static, shared ]
 
 Return('inst')

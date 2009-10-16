@@ -3,22 +3,17 @@
 # libcmyth
 #
 
-Import ('env')
-
-dir = env['BUILD_DIR']
-target = env['TARG']
-libdir = env['INSTLIBDIR']
-toplevel = env['TOPLEVEL']
+Import('env')
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'file.c', 'freespace.c', 'keyframe.c', 'mythtv_mysql.c',
         'posmap.c', 'proginfo.c', 'proglist.c', 'rec_num.c', 
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
-        'livetv.c', 'tvguide.c', 'mysql_query.c', 'commbreak.c' ]
+        'livetv.c', 'mysql_query.c', 'commbreak.c' ]
 
-static = env.StaticLibrary('cmyth', src, CPPPATH = [ env['INCDIR'],  toplevel + '/dongle/install/' + target + '/lib/mysql', '.', toplevel + '/dongle/install/' + target + '/include' ])
-shared = env.SharedLibrary('cmyth', src, CPPPATH = [ env['INCDIR'],  toplevel + '/dongle/install/' + target + '/lib/mysql', '.', toplevel + '/dongle/install/' + target + '/include' ])
+static = env.StaticLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
+shared = env.SharedLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
 
-inst = env.Install(libdir, [ static, shared ])
+inst = [ static, shared ]
 
 Return('inst')
