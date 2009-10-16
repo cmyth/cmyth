@@ -10,9 +10,9 @@ env = Environment (ENV = os.environ)
 Export('env')
 
 cmyth = SConscript('libcmyth/SConscript')
-
 refmem = SConscript('librefmem/SConscript')
+src = SConscript('src/SConscript')
 
-libs = [ cmyth, refmem ]
+targets = [ cmyth, refmem, src ]
 
-Return('libs')
+Return('targets')

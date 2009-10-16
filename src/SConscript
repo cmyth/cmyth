@@ -1,0 +1,17 @@
+#!/usr/bin/python
+#
+# cmyth apps
+#
+
+Import('env')
+
+mythfuse = env.Program('mythfuse', 'mythfuse.c',
+                       CCFLAGS = ' -D_FILE_OFFSET_BITS=64',
+                       CPPPATH = [ '../include' ],
+                       LIBS = [ 'cmyth', 'fuse', 'pthread', 'refmem',
+                                'mysqlclient' ],
+                       LIBPATH = [ '../libcmyth', '../librefmem' ])
+
+targets = [ 'mythfuse' ]
+
+Return('targets')
