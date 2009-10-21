@@ -241,6 +241,7 @@ cmyth_commbreaklist_t
 cmyth_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_proginfo_t prog)
 {
 	cmyth_commbreaklist_t breaklist = cmyth_commbreaklist_create();
+#if defined(HAS_MYSQL)
         char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
 	int r;
 
@@ -257,5 +258,6 @@ cmyth_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_proginfo_t
 
 	out:
 	pthread_mutex_unlock(&mutex);
+#endif /* HAS_MYSQL */
 	return breaklist;
 }

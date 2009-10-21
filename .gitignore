@@ -6,3 +6,6 @@
 .sconsign*
 *.pyc
 src/mythfuse
+src/mythping
+.sconf_temp
+config.log

@@ -3,7 +3,7 @@
 # librefmem
 #
 
-Import('env')
+env = Environment()
 
 src = [ 'alloc.c', 'debug.c' ]
 

@@ -3,13 +3,19 @@
 # libcmyth
 #
 
-Import('env')
+env = Environment()
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
-        'file.c', 'freespace.c', 'keyframe.c', 'mythtv_mysql.c',
+        'file.c', 'freespace.c', 'keyframe.c',
         'posmap.c', 'proginfo.c', 'proglist.c', 'rec_num.c', 
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
-        'livetv.c', 'mysql_query.c', 'commbreak.c' ]
+        'livetv.c', 'commbreak.c' ]
+
+conf = Configure(env)
+if conf.CheckCHeader('mysql/mysql.h'):
+    conf.env.Append(CPPFLAGS = '-DHAS_MYSQL')
+    src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
+env = conf.Finish()
 
 static = env.StaticLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
 shared = env.SharedLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])

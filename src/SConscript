@@ -3,15 +3,27 @@
 # cmyth apps
 #
 
-Import('env')
+libs = [ 'cmyth', 'pthread', 'refmem', ]
+
+targets = [ 'mythping' ]
+
+env = Environment()
+conf = Configure(env)
+if conf.CheckLib('mysqlclient'):
+    libs += [ 'mysqlclient' ]
+if conf.CheckLib('fuse'):
+    targets += [ 'mythfuse' ]
+env = conf.Finish()
 
 mythfuse = env.Program('mythfuse', 'mythfuse.c',
                        CCFLAGS = ' -D_FILE_OFFSET_BITS=64',
                        CPPPATH = [ '../include' ],
-                       LIBS = [ 'cmyth', 'fuse', 'pthread', 'refmem',
-                                'mysqlclient' ],
+                       LIBS = libs + [ 'fuse' ],
                        LIBPATH = [ '../libcmyth', '../librefmem' ])
 
-targets = [ 'mythfuse' ]
+mythping = env.Program('mythping', 'mythping.c',
+                       CPPPATH = [ '../include' ],
+                       LIBS = libs,
+                       LIBPATH = [ '../libcmyth', '../librefmem' ])
 
 Return('targets')

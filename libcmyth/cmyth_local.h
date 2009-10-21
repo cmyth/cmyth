@@ -29,7 +29,9 @@
 #include <cmyth.h>
 #include <time.h>
 #include <pthread.h>
+#if defined(HAS_MYSQL)
 #include <mysql/mysql.h>
+#endif
 
 #define mutex __cmyth_mutex
 extern pthread_mutex_t mutex;
@@ -83,6 +85,7 @@ struct cmyth_livetv_chain {
 	cmyth_file_t *chain_files; /* File pointers for the urls */
 };
 
+#if defined(HAS_MYSQL)
 /* Sergio: Added to clean up database interaction */
 struct cmyth_database {
 	char * db_host;
@@ -91,6 +94,7 @@ struct cmyth_database {
 	char * db_name;
 	MYSQL * mysql;
 };	
+#endif /* HAS_MYSQL */
 
 /* Sergio: Added to clean up channel list handling */
 struct cmyth_channel {
@@ -369,6 +373,7 @@ extern cmyth_file_t cmyth_file_create(cmyth_conn_t control);
 #define cmyth_timestamp_diff __cmyth_timestamp_diff
 extern int cmyth_timestamp_diff(cmyth_timestamp_t, cmyth_timestamp_t);
 
+#if defined(HAS_MYSQL)
 /*
  * From mythtv_mysql.c
  */
@@ -401,6 +406,7 @@ extern int cmyth_mysql_query_param_str(cmyth_mysql_query_t * query, const char *
 extern char * cmyth_mysql_query_string(cmyth_mysql_query_t * query);
 
 extern MYSQL_RES * cmyth_mysql_query_result(cmyth_mysql_query_t * query);
+#endif /* HAS_MYSQL */
 
 
 
