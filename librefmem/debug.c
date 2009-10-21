@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2006, Eric Lund
+ *  Copyright (C) 2004-2009, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <mvp_debug.h>
+#include <cmyth/debug.h>
 #include <refmem_local.h>
 
 static mvp_debug_ctx_t refmem_debug_ctx = MVP_DEBUG_CTX_INIT("refmem",

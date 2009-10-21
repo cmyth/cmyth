@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2006, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2009, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -26,7 +26,8 @@
 #define __CMYTH_LOCAL_H
 
 #include <unistd.h>
-#include <cmyth.h>
+#include <refmem/refmem.h>
+#include <cmyth/cmyth.h>
 #include <time.h>
 #include <pthread.h>
 #if defined(HAS_MYSQL)

@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "cmyth.h"
-#include "mvp_refmem.h"
+#include "cmyth/cmyth.h"
+#include "refmem/refmem.h"
 
 static int
 is_alive(char *host)

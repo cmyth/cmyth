@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2008, Jon Gettler
+ *  Copyright (C) 2008-2009, Jon Gettler
  *  http://www.mvpmc.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,8 +31,8 @@
 #include <getopt.h>
 #include <pthread.h>
 
-#include <cmyth.h>
-#include <mvp_refmem.h>
+#include <cmyth/cmyth.h>
+#include <refmem/refmem.h>
 
 #define MAX_CONN	32
 #define MAX_FILES	32

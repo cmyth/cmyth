@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2006, Eric Lund, Jon Gettler
+ *  Copyright (C) 2005-2009, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -42,8 +42,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include <mvp_refmem.h>
-#include <mvp_atomic.h>
+#include <refmem/refmem.h>
+#include <refmem/atomic.h>
 #include <refmem_local.h>
 
 #include <string.h>
