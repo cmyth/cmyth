@@ -7,12 +7,39 @@ Import('env')
 
 src = [ 'alloc.c', 'debug.c' ]
 
-static = env.StaticLibrary('refmem', src, CPPPATH = [ '../include', '.' ])
-shared = env.SharedLibrary('refmem', src, CPPPATH = [ '../include', '.' ])
+major = '0'
+minor = '1'
+version = major + '.' + minor
+soname = 'librefmem.so.' + version
+soname2 = 'librefmem.so.' + major
+soname3 = 'librefmem.so'
+linkflags = [ '-Wl,-soname,' + soname ]
+
+static = env.StaticLibrary('refmem', src,
+                           LINKFLAGS = linkflags,
+                           CPPPATH = [ '../include', '.' ])
+shared = env.SharedLibrary('refmem', src,
+                           SHLIBSUFFIX = '.so.' + version,
+                           LINKFLAGS = linkflags,
+                           CPPPATH = [ '../include', '.' ])
+
+link2 = env.Command(soname2, soname,
+                   'ln -sf %s %s' % (soname, soname2), chdir=1)
+link3 = env.Command(soname3, soname2,
+                   'ln -sf %s %s' % (soname2, soname3), chdir=1)
+
+env.AddPostAction(shared, link2)
+env.AddPostAction(link2, link3)
 
 targets = [ static, shared ]
 
 prefix = env['PREFIX']
-env.Install(prefix + '/lib', targets)
+install = env.Install(prefix + '/lib', targets)
+symlink2 = env.Command(prefix + '/lib/' + soname2, link2,
+                       'ln -sf %s %s' % (soname, prefix + '/lib/' + soname2))
+symlink3 = env.Command(prefix + '/lib/' + soname3, link3,
+                       'ln -sf %s %s' % (soname2, prefix + '/lib/' + soname3))
+env.AddPostAction(install, symlink2)
+env.AddPostAction(symlink2, symlink3)
 
 Return('targets')

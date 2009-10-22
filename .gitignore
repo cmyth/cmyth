@@ -2,6 +2,7 @@
 *.os
 *.a
 *.so
+*.so.*
 *~
 .sconsign*
 *.pyc

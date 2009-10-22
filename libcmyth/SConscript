@@ -17,12 +17,40 @@ if conf.CheckCHeader('mysql/mysql.h'):
     src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
 env = conf.Finish()
 
-static = env.StaticLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
-shared = env.SharedLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
+major = '0'
+minor = '1'
+version = major + '.' + minor
+soname = 'libcmyth.so.' + version
+soname2 = 'libcmyth.so.' + major
+soname3 = 'libcmyth.so'
+linkflags = [ '-Wl,-soname,' + soname ]
+
+static = env.StaticLibrary('cmyth', src,
+                           LINKFLAGS = linkflags,
+                           CPPPATH = [ '../include', '.' ])
+shared = env.SharedLibrary('cmyth', src,
+                           SHLIBSUFFIX = '.so.' + version,
+                           LINKFLAGS = linkflags,
+                           CPPPATH = [ '../include', '.' ])
+
+link2 = env.Command(soname2, soname,
+                   'ln -sf %s %s' % (soname, soname2), chdir=1)
+link3 = env.Command(soname3, soname2,
+                   'ln -sf %s %s' % (soname2, soname3), chdir=1)
+
+env.AddPostAction(shared, link2)
+env.AddPostAction(link2, link3)
 
 targets = [ static, shared ]
 
 prefix = env['PREFIX']
-env.Install(prefix + '/lib', targets)
+install = env.Install(prefix + '/lib', targets)
+symlink2 = env.Command(prefix + '/lib/' + soname2, link2,
+                       'ln -sf %s %s' % (soname, prefix + '/lib/' + soname2))
+symlink3 = env.Command(prefix + '/lib/' + soname3, link3,
+                       'ln -sf %s %s' % (soname2, prefix + '/lib/' + soname3))
+env.AddPostAction(install, symlink2)
+env.AddPostAction(symlink2, symlink3)
+
 
 Return('targets')

@@ -1,0 +1,8 @@
+libcmyth is a library implemented in C that allows you to communicate
+with a MythTV backend.
+
+To build:
+	$ scons
+
+To install:
+	$ scons install
