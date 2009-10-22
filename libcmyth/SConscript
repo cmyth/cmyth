@@ -3,7 +3,7 @@
 # libcmyth
 #
 
-env = Environment()
+Import('env')
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'file.c', 'freespace.c', 'keyframe.c',
@@ -20,6 +20,9 @@ env = conf.Finish()
 static = env.StaticLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
 shared = env.SharedLibrary('cmyth', src, CPPPATH = [ '../include', '.' ])
 
-inst = [ static, shared ]
+targets = [ static, shared ]
 
-Return('inst')
+prefix = env['PREFIX']
+env.Install(prefix + '/lib', targets)
+
+Return('targets')

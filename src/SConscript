@@ -3,11 +3,12 @@
 # cmyth apps
 #
 
+Import('env')
+
 libs = [ 'cmyth', 'pthread', 'refmem', ]
 
 targets = [ 'mythping' ]
 
-env = Environment()
 conf = Configure(env)
 if conf.CheckLib('mysqlclient'):
     libs += [ 'mysqlclient' ]
@@ -25,5 +26,8 @@ mythping = env.Program('mythping', 'mythping.c',
                        CPPPATH = [ '../include' ],
                        LIBS = libs,
                        LIBPATH = [ '../libcmyth', '../librefmem' ])
+
+prefix = env['PREFIX']
+env.Install(prefix + '/bin', targets)
 
 Return('targets')
