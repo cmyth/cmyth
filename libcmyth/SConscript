@@ -27,10 +27,12 @@ linkflags = [ '-Wl,-soname,' + soname ]
 
 static = env.StaticLibrary('cmyth', src,
                            LINKFLAGS = linkflags,
+                           LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 shared = env.SharedLibrary('cmyth', src,
                            SHLIBSUFFIX = '.so.' + version,
                            LINKFLAGS = linkflags,
+                           LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 
 link2 = env.Command(soname2, soname,

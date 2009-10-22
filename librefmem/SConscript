@@ -17,10 +17,12 @@ linkflags = [ '-Wl,-soname,' + soname ]
 
 static = env.StaticLibrary('refmem', src,
                            LINKFLAGS = linkflags,
+                           LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 shared = env.SharedLibrary('refmem', src,
                            SHLIBSUFFIX = '.so.' + version,
                            LINKFLAGS = linkflags,
+                           LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 
 link2 = env.Command(soname2, soname,
