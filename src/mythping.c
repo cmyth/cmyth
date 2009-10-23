@@ -20,20 +20,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "cmyth/cmyth.h"
 #include "refmem/refmem.h"
 
+static cmyth_conn_t control;
+
+static struct option opts[] = {
+	{ "help", no_argument, 0, 'h' },
+	{ "verbose", no_argument, 0, 'v' },
+	{ 0, 0, 0, 0 }
+};
+
+static void
+print_help(char *prog)
+{
+	printf("Usage: %s [-v] <backend>\n", prog);
+}
+
 static int
 is_alive(char *host)
 {
-	cmyth_conn_t control;
 
 	if ((control=cmyth_conn_connect_ctrl(host, 6543,
 					     16*1024, 4096)) == NULL) {
 		return 0;
 	}
-	ref_release(control);
 
 	return 1;
 }
@@ -41,16 +54,57 @@ is_alive(char *host)
 int
 main(int argc, char **argv)
 {
-	if (argc != 2) {
+	int c, opt_index;
+	int verbose = 0;
+	char *server;
+
+	while ((c=getopt_long(argc, argv, "hv", opts, &opt_index)) != -1) {
+		switch (c) {
+		case 'h':
+			print_help(argv[0]);
+			exit(0);
+			break;
+		case 'v':
+			verbose = 1;
+			break;
+		default:
+			print_help(argv[0]);
+			exit(1);
+			break;
+		}
+	}
+
+	if (optind == argc) {
 		fprintf(stderr, "no server given!\n");
 		return -1;
 	}
 
-	if (is_alive(argv[1])) {
-		printf("%s is alive.\n", argv[1]);
-		return 0;
-	} else {
-		printf("%s is not responding.\n", argv[1]);
+	server = argv[optind];
+
+	if (!is_alive(server)) {
+		printf("%s is not responding.\n", server);
 		return 1;
 	}
+
+	printf("%s is alive.\n", server);
+
+	if (verbose) {
+		int version, count;
+		cmyth_proglist_t list;
+
+		version = cmyth_conn_get_protocol_version(control);
+
+		printf("\tprotocol version: %d\n", version);
+
+		list = cmyth_proglist_get_all_recorded(control);
+		count = cmyth_proglist_get_count(list);
+
+		printf("\trecordings: %d\n", count);
+
+		ref_release(list);
+	}
+
+	ref_release(control);
+
+	return 0;
 }
