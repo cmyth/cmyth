@@ -124,12 +124,12 @@ guard_check(guard_t *guard)
 #endif /* DEBUG */
 
 int ref_get_refcount(char *loc)
-  {
-  /* REF_DBG_COUNTERS does not seem to work - what am I missing? */
-  refmem_dbg(REF_DBG_COUNTERS,"%40.40s Refs: %7d   Bytes: %8d\n",loc,total_refcount,total_bytecount); 
-  fprintf(stderr,",%40.40s Refs: %7d   Bytes: %8d\n",loc,total_refcount,total_bytecount); 
-  return(total_refcount);
-  }
+{
+	refmem_dbg(REF_DBG_COUNTERS,
+		   "%40.40s Refs: %7d   Bytes: %8d\n",
+		   loc,total_refcount,total_bytecount);
+	return(total_refcount);
+}
 
 #if defined(DEBUG)
 static inline void

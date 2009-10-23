@@ -56,7 +56,6 @@ cmyth_proglist_destroy(cmyth_proglist_t pl)
 		return;
 	}
 
-	printf("Destroying proglist %p with count %ld\n",pl,pl->proglist_count);
 	for (i  = 0; i < pl->proglist_count; ++i) {
 		if (pl->proglist_list[i]) {
 			ref_release(pl->proglist_list[i]);
