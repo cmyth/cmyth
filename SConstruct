@@ -42,17 +42,25 @@ env.Install(prefix + '/include/cmyth',
 env.Install(prefix + '/include/refmem',
             ['include/refmem/refmem.h', 'include/refmem/atomic.h'])
 
+all = targets
+
 cs = find_binary('cscope')
 if cs != '':
 	cscope = env.Command([ 'cscope.out', 'cscope.files',
 			       'cscope.in.out', 'cscope.po.out' ],
-			     [ 'src/mythping' ],
+			     [ 'src/mythping.c' ],
 			     [ 'find . -name \*.c -or -name \*.h > cscope.files',
 			       '%s -b -q -k' % cs ])
 	env.Alias('cscope', [cscope])
-	all = targets + [cscope]
-else:
-	all = targets
+	all += [cscope]
+
+dox = find_binary('doxygen')
+if dox != '':
+	doxygen = env.Command([ 'doc' ],
+			      [ 'Doxyfile' ],
+                              [ '%s Doxyfile' % dox ])
+	env.Alias('doxygen', [doxygen])
+	all += [doxygen]
 
 env.Alias('install', [prefix])
 env.Alias('all', all)
