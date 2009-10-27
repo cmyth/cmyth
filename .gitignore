@@ -10,3 +10,7 @@ src/mythfuse
 src/mythping
 .sconf_temp
 config.log
+cscope.files
+cscope.in.out
+cscope.out
+cscope.po.out

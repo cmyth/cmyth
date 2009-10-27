@@ -7,13 +7,9 @@ Import('env')
 
 libs = [ 'cmyth', 'pthread', 'refmem', ]
 
-targets = [ 'mythping' ]
-
 conf = Configure(env)
 if conf.CheckLib('mysqlclient'):
     libs += [ 'mysqlclient' ]
-if conf.CheckLib('fuse'):
-    targets += [ 'mythfuse' ]
 env = conf.Finish()
 
 mythfuse = env.Program('mythfuse', 'mythfuse.c',
@@ -26,6 +22,12 @@ mythping = env.Program('mythping', 'mythping.c',
                        CPPPATH = [ '../include' ],
                        LIBS = libs,
                        LIBPATH = [ '../libcmyth', '../librefmem' ])
+
+targets = [ mythping ]
+conf = Configure(env)
+if conf.CheckLib('fuse'):
+    targets += [ mythfuse ]
+env = conf.Finish()
 
 prefix = env['PREFIX']
 env.Install(prefix + '/bin', targets)
