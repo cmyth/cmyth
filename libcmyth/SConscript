@@ -35,15 +35,12 @@ shared = env.SharedLibrary('cmyth', src,
                            LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 
-link2 = env.Command(soname2, soname,
+link2 = env.Command(soname2, shared,
                    'ln -sf %s %s' % (soname, soname2), chdir=1)
 link3 = env.Command(soname3, soname2,
                    'ln -sf %s %s' % (soname2, soname3), chdir=1)
 
-env.AddPostAction(shared, link2)
-env.AddPostAction(link2, link3)
-
-targets = [ static, shared ]
+targets = [ static, shared, link2, link3 ]
 
 prefix = env['PREFIX']
 install = env.Install(prefix + '/lib', targets)
@@ -51,8 +48,5 @@ symlink2 = env.Command(prefix + '/lib/' + soname2, link2,
                        'ln -sf %s %s' % (soname, prefix + '/lib/' + soname2))
 symlink3 = env.Command(prefix + '/lib/' + soname3, link3,
                        'ln -sf %s %s' % (soname2, prefix + '/lib/' + soname3))
-env.AddPostAction(install, symlink2)
-env.AddPostAction(symlink2, symlink3)
-
 
 Return('targets')
