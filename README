@@ -1,8 +1,22 @@
 libcmyth is a library implemented in C that allows you to communicate
 with a MythTV backend.
 
-To build:
-	$ scons
+The build is controlled with scons, and there are several build targets
+available (the default target will just build the code):
 
-To install:
-	$ scons install
+	cscope		- build a cscope database
+	doxygen		- build doxygen documentation
+	all		- build the code, cscope, and doxygen
+	install		- build and install the code
+
+To build a target:
+
+	$ scons <target>
+
+To cleanup a target:
+
+	$ scons -c <target>
+
+To specify an install prefix:
+
+	$ PREFIX=<path> scons install
