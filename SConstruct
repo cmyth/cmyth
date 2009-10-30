@@ -60,6 +60,7 @@ else:
     prefix = '/usr/local'
 
 env.Replace(PREFIX = prefix)
+env.Append(CFLAGS = '-Werror')
 
 Export('env')
 

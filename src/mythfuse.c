@@ -21,6 +21,7 @@
 
 #include <fuse.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -115,7 +116,7 @@ static struct option opts[] = {
 static void*
 event_loop(void *arg)
 {
-	int i = (int)arg;
+	intptr_t i = (intptr_t)arg;
 	char buf[128];
 	cmyth_event_t next;
 	int done = 0;
@@ -170,7 +171,7 @@ event_loop(void *arg)
 static int
 lookup_server(char *host)
 {
-	int i, j = -1;
+	intptr_t i, j = -1;
 	cmyth_conn_t control, event;
 
 	debug("%s(): host '%s'\n", __FUNCTION__, host);
