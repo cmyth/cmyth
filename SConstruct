@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # SCons build script for libcmyth
 # http://www.mvpmc.org/
@@ -27,10 +26,20 @@ def cmd_not_found(self, arg):
 	print 'Error: %s not found!' % arg
 	env.Exit(1)
 
+#
+# Initialize the build environment
+#
 env = Environment()
 
 env.AddMethod(cmd_not_found, 'cmd_not_found')
 env.AddMethod(find_binary, 'find_binary')
+
+if os.environ.has_key('CROSS'):
+	cross = os.environ['CROSS']
+	env.Replace(CC = cross + 'gcc')
+	env.Replace(LD = cross + 'ld')
+
+env.Append(CFLAGS = '-Werror')
 
 #
 # Check the command line targets
@@ -60,7 +69,6 @@ else:
     prefix = '/usr/local'
 
 env.Replace(PREFIX = prefix)
-env.Append(CFLAGS = '-Werror')
 
 Export('env')
 
@@ -73,6 +81,9 @@ src = SConscript('src/SConscript')
 
 targets = [ cmyth, refmem, src ]
 
+#
+# install targets
+#
 env.Install(prefix + '/include/cmyth',
             ['include/cmyth/cmyth.h'])
 env.Install(prefix + '/include/refmem',
