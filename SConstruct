@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 # SCons build script for libcmyth
+# http://www.mvpmc.org/
 #
 
 import os
@@ -72,7 +73,7 @@ src = SConscript('src/SConscript')
 targets = [ cmyth, refmem, src ]
 
 env.Install(prefix + '/include/cmyth',
-            ['include/cmyth/cmyth.h', 'include/cmyth/debug.h'])
+            ['include/cmyth/cmyth.h'])
 env.Install(prefix + '/include/refmem',
             ['include/refmem/refmem.h', 'include/refmem/atomic.h'])
 
@@ -86,6 +87,7 @@ if build_cscope > 0 and cs != '':
 			       'cscope.in.out', 'cscope.po.out' ],
 			     [ Glob('src/*.[ch]'),
 			       Glob('lib*/*.[ch]'),
+			       Glob('include/*.h'),
 			       Glob('include/*/*.h') ],
 			     [ 'find . -name \*.c -or -name \*.h > cscope.files',
 			       '%s -b -q -k' % cs ])
@@ -102,6 +104,7 @@ if build_doxygen > 0 and dox != '':
 			      [ 'Doxyfile',
 				Glob('src/*.[ch]'),
 				Glob('lib*/*.[ch]'),
+				Glob('include/*.h'),
 				Glob('include/*/*.h') ],
                               [ '%s Doxyfile' % dox ])
 	env.Alias('doxygen', [doxygen])

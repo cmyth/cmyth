@@ -1213,7 +1213,7 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	char lastmodified[CMYTH_TIMESTAMP_LEN + 1];
 	int err;
 	int ret;
-	char *host = "mediamvp";
+	char *host = "libcmyth";
 
 	if (!prog) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no program info\n",
