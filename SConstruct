@@ -34,8 +34,15 @@ env = Environment()
 env.AddMethod(cmd_not_found, 'cmd_not_found')
 env.AddMethod(find_binary, 'find_binary')
 
+vars = Variables('cmyth.conf')
+vars.Add('CC', '', 'gcc')
+vars.Add('LD', '', 'ld')
+
+vars.Update(env)
+
 if os.environ.has_key('CROSS'):
 	cross = os.environ['CROSS']
+	env.Append(CROSS = cross)
 	env.Replace(CC = cross + 'gcc')
 	env.Replace(LD = cross + 'ld')
 
@@ -135,6 +142,10 @@ env.Default(targets)
 # cleanup
 #
 if 'all' in COMMAND_LINE_TARGETS:
-	env.Clean(all, ['.sconf_temp','.sconsign.dblite', 'config.log', 'doc'])
+	env.Clean(all, ['.sconf_temp','.sconsign.dblite', 'config.log', 'doc',
+                        'cmyth.conf'])
 if 'doxygen' in COMMAND_LINE_TARGETS:
 	env.Clean(all, ['doc'])
+
+vars.Save('cmyth.conf', env)
+
