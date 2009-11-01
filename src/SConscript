@@ -31,6 +31,8 @@ if not env.GetOption('clean'):
     if conf.CheckLib('fuse'):
         targets += [ mythfuse ]
     env = conf.Finish()
+else:
+    targets += [ mythfuse ]
 
 prefix = env['PREFIX']
 env.Install(prefix + '/bin', targets)

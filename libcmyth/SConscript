@@ -17,6 +17,8 @@ if not env.GetOption('clean'):
         conf.env.Append(CPPFLAGS = '-DHAS_MYSQL')
         src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
     env = conf.Finish()
+else:
+    src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
 
 major = '0'
 minor = '1'

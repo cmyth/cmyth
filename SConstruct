@@ -142,10 +142,11 @@ env.Default(targets)
 # cleanup
 #
 if 'all' in COMMAND_LINE_TARGETS:
-	env.Clean(all, ['.sconf_temp','.sconsign.dblite', 'config.log', 'doc',
-                        'cmyth.conf'])
+	env.Clean(all, ['doc', 'cmyth.conf'])
+	env.Clean(all, ['config.log','.sconf_temp','.sconsign.dblite'])
 if 'doxygen' in COMMAND_LINE_TARGETS:
 	env.Clean(all, ['doc'])
 
-vars.Save('cmyth.conf', env)
+if not env.GetOption('clean'):
+	vars.Save('cmyth.conf', env)
 
