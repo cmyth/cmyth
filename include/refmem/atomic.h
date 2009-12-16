@@ -44,7 +44,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		: "cc", "memory"
 		);
 #elif defined __i386__ || defined __x86_64__
-	asm volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
+	__asm__ volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
 		      : "=a" (__val)
 		      : "0" (1), "m" (*valp), "d" (valp)
 		      : "memory");
@@ -60,7 +60,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
-#elif defined __arm__
+#elif defined __arm__XXX
 	int tmp1, tmp2;
 	int inc = 1;
 	__asm__ __volatile__ (
@@ -106,7 +106,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		: "cc", "memory"
 		);
 #elif defined __i386__ || defined __x86_64__
-	asm volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
+	__asm__ volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
 		      : "=a" (__val)
 		      : "0" (-1), "m" (*valp), "d" (valp)
 		      : "memory");
@@ -122,7 +122,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
-#elif defined __arm__
+#elif defined __arm__XXX
 	int tmp1, tmp2;
 	int inc = -1;
 	__asm__ __volatile__ (
