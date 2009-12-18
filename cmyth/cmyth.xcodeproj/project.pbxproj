@@ -35,6 +35,8 @@
 		BF58449C10D862EE00EE0B3E /* safe_string.h in Headers */ = {isa = PBXBuildFile; fileRef = BF58448610D862EE00EE0B3E /* safe_string.h */; };
 		BF58449D10D862EE00EE0B3E /* socket.c in Sources */ = {isa = PBXBuildFile; fileRef = BF58448810D862EE00EE0B3E /* socket.c */; };
 		BF58449E10D862EE00EE0B3E /* timestamp.c in Sources */ = {isa = PBXBuildFile; fileRef = BF58448910D862EE00EE0B3E /* timestamp.c */; };
+		BF5847E310DB39E700EE0B3E /* api.h in Headers */ = {isa = PBXBuildFile; fileRef = BF5847E110DB39E700EE0B3E /* api.h */; };
+		BF5847E410DB39E700EE0B3E /* api.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5847E210DB39E700EE0B3E /* api.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +68,8 @@
 		BF58448610D862EE00EE0B3E /* safe_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = safe_string.h; sourceTree = "<group>"; };
 		BF58448810D862EE00EE0B3E /* socket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = socket.c; sourceTree = "<group>"; };
 		BF58448910D862EE00EE0B3E /* timestamp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = timestamp.c; sourceTree = "<group>"; };
+		BF5847E110DB39E700EE0B3E /* api.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = api.h; sourceTree = "<group>"; };
+		BF5847E210DB39E700EE0B3E /* api.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = api.m; sourceTree = "<group>"; };
 		D2AAC07E0554694100DB518D /* libcmyth.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libcmyth.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -111,6 +115,8 @@
 		08FB77AEFE84172EC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				BF5847E110DB39E700EE0B3E /* api.h */,
+				BF5847E210DB39E700EE0B3E /* api.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -207,6 +213,7 @@
 				BF58446A10D862B900EE0B3E /* refmem_local.h in Headers */,
 				BF58448B10D862EE00EE0B3E /* cmyth_local.h in Headers */,
 				BF58449C10D862EE00EE0B3E /* safe_string.h in Headers */,
+				BF5847E310DB39E700EE0B3E /* api.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +279,7 @@
 				BF58449B10D862EE00EE0B3E /* ringbuf.c in Sources */,
 				BF58449D10D862EE00EE0B3E /* socket.c in Sources */,
 				BF58449E10D862EE00EE0B3E /* timestamp.c in Sources */,
+				BF5847E410DB39E700EE0B3E /* api.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

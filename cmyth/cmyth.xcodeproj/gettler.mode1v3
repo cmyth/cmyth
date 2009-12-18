@@ -229,8 +229,6 @@
 			<key>Layout</key>
 			<array>
 				<dict>
-					<key>BecomeActive</key>
-					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -268,11 +266,6 @@
 								<string>0867D691FE84028FC02AAC07</string>
 								<string>08FB77AEFE84172EC02AAC07</string>
 								<string>32C88DFF0371C24200C91783</string>
-								<string>BF58447210D862EE00EE0B3E</string>
-								<string>BF58446210D862B900EE0B3E</string>
-								<string>BF58434E10D85C5900EE0B3E</string>
-								<string>BF58445810D8626900EE0B3E</string>
-								<string>BF58434F10D85C5900EE0B3E</string>
 								<string>0867D69AFE84028FC02AAC07</string>
 								<string>034768DFFF38A50411DB9C8B</string>
 								<string>1C37FABC05509CD000000102</string>
@@ -280,8 +273,13 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>3</integer>
 									<integer>2</integer>
+									<integer>1</integer>
+									<integer>0</integer>
+								</array>
+								<array>
+									<integer>3</integer>
+									<integer>1</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -305,7 +303,7 @@
 							<real>186</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>540 250 788 504 0 0 1440 878 </string>
+						<string>253 233 788 504 0 0 1440 878 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -321,7 +319,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>debug.h</string>
+								<string>api.m</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -329,15 +327,19 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>debug.h</string>
+										<string>api.m</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>BF5844AF10D8636500EE0B3E</string>
+										<string>BF58483410DC4D7D00EE0B3E</string>
 										<key>history</key>
 										<array>
 											<string>BF5844AD10D8636500EE0B3E</string>
-											<string>BF5844AE10D8636500EE0B3E</string>
+											<string>BF5844B510D864AC00EE0B3E</string>
+											<string>BF58480610DC4AE100EE0B3E</string>
+											<string>BF58480710DC4AE100EE0B3E</string>
+											<string>BF58480810DC4AE100EE0B3E</string>
+											<string>BF58480910DC4AE100EE0B3E</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -349,16 +351,18 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {580, 277}}</string>
+								<string>{{0, 0}, {580, 269}}</string>
 								<key>RubberWindowFrame</key>
-								<string>540 250 788 504 0 0 1440 878 </string>
+								<string>253 233 788 504 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>277pt</string>
+							<string>269pt</string>
 						</dict>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -369,14 +373,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 282}, {580, 181}}</string>
+								<string>{{0, 274}, {580, 189}}</string>
 								<key>RubberWindowFrame</key>
-								<string>540 250 788 504 0 0 1440 878 </string>
+								<string>253 233 788 504 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>181pt</string>
+							<string>189pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -395,9 +399,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>BF58434310D85BE900EE0B3E</string>
+				<string>BF58480B10DC4AE100EE0B3E</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>BF58434410D85BE900EE0B3E</string>
+				<string>BF58480C10DC4AE100EE0B3E</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -539,7 +543,7 @@
 		<string>/Users/gettler/iphone/cmyth/cmyth/cmyth.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>540 250 788 504 0 0 1440 878 </string>
+	<string>253 233 788 504 0 0 1440 878 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
@@ -560,21 +564,21 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CD0528F0623707200166675</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>&lt;No Editor&gt;</string>
+								<string>api.m</string>
 								<key>StatusBarVisibility</key>
 								<true/>
 							</dict>
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {663, 0}}</string>
+								<string>{{0, 0}, {663, 159}}</string>
 								<key>RubberWindowFrame</key>
 								<string>347 220 663 576 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>0pt</string>
+							<string>159pt</string>
 						</dict>
 						<dict>
 							<key>BecomeActive</key>
@@ -593,14 +597,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 5}, {663, 530}}</string>
+								<string>{{0, 164}, {663, 371}}</string>
 								<key>RubberWindowFrame</key>
 								<string>347 220 663 576 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXBuildResultsModule</string>
 							<key>Proportion</key>
-							<string>530pt</string>
+							<string>371pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -618,7 +622,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>BF58434610D85BE900EE0B3E</string>
-				<string>BF58434710D85BE900EE0B3E</string>
+				<string>BF58480510DC4AE000EE0B3E</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
