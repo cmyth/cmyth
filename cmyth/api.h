@@ -8,14 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-#include <cmyth.h>
+#include <cmyth/cmyth.h>
 
 @interface cmyth : NSObject {
 	cmyth_conn_t control;
+	cmyth_proglist_t proglist;
 }
 
--(cmyth*) server:(NSString*) s port: (unsigned short) p;
+-(cmyth*) server:(NSString*) server port: (unsigned short) port;
 
 -(int) protocol_version;
+-(cmyth_proglist_t) get_proglist;
+-(int) proglist_count:(cmyth_proglist_t) proglist;
 
 @end
