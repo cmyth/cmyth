@@ -10,15 +10,33 @@
 
 #include <cmyth/cmyth.h>
 
-@interface cmyth : NSObject {
-	cmyth_conn_t control;
+@interface cmythProgram : NSObject {
+	cmyth_proginfo_t program;
+}
+
+-(NSString*)title;
+-(NSString*)subtitle;
+-(NSString*)description;
+-(NSString*)category;
+
+@end
+
+@interface cmythProgramList : NSObject {
 	cmyth_proglist_t proglist;
 }
 
--(cmyth*) server:(NSString*) server port: (unsigned short) port;
+-(cmythProgramList*)programList:(cmyth_conn_t)control;
+-(cmythProgram*)progitem:(int)n;
+-(int) count;
 
+@end
+
+@interface cmyth : NSObject {
+	cmyth_conn_t control;
+}
+
+-(cmyth*) server:(NSString*) server port: (unsigned short) port;
 -(int) protocol_version;
--(cmyth_proglist_t) get_proglist;
--(int) proglist_count:(cmyth_proglist_t) proglist;
+-(cmythProgramList*)programList;
 
 @end

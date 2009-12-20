@@ -11,6 +11,63 @@
 
 #import "api.h"
 
+@implementation cmythProgram
+
+#define proginfo_method(type)					\
+-(NSString*)type						\
+{								\
+	char *type;						\
+	NSString *result = nil;					\
+								\
+	type = cmyth_proginfo_##type(program);			\
+								\
+	if (type != NULL) {					\
+		result = [NSString initWithUTF8String:type];	\
+		ref_release(type);				\
+	}							\
+								\
+	return result;						\
+}
+
+proginfo_method(title)
+proginfo_method(subtitle)
+proginfo_method(description)
+proginfo_method(category)
+
+-(void) dealloc
+{
+	ref_release(program);
+
+	[super dealloc];
+}
+
+@end
+
+@implementation cmythProgramList
+
+-(cmythProgramList*)programList:(cmyth_conn_t)control
+{
+	cmyth_proglist_t list;
+
+	if ((list=cmyth_proglist_get_all_recorded(control)) == NULL) {
+		return nil;
+	}
+
+	self = [super init];
+
+	proglist = list;
+
+	return self;
+}
+
+-(void) dealloc
+{
+	ref_release(proglist);
+
+	[super dealloc];
+}
+
+@end
 
 @implementation cmyth
 
@@ -34,18 +91,11 @@
 
 	if (self) {
 		control = c;
-		proglist = NULL;
+	} else {
+		control = NULL;
 	}
 
 	return self;
-}
-
--(void) dealloc
-{
-	ref_release(proglist);
-	ref_release(control);
-
-	[super dealloc];
 }
 
 -(int) protocol_version
@@ -53,21 +103,20 @@
 	return cmyth_conn_get_protocol_version(control);
 }
 
--(cmyth_proglist_t) get_proglist
+-(cmythProgramList*)programList
 {
-	if (proglist) {
-		ref_release(proglist);
-	}
+	cmythProgramList *list;
 
-	proglist = cmyth_proglist_get_all_recorded(control);
+	list = [[cmythProgramList alloc] control:control];
 
-	return proglist;
+	return list;
 }
 
--(int) proglist_count:
-	(cmyth_proglist_t) proglist
+-(void) dealloc
 {
-	return cmyth_proglist_get_count(proglist);
+	ref_release(control);
+
+	[super dealloc];
 }
 
 @end
