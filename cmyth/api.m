@@ -13,13 +13,22 @@
 
 @implementation cmythProgram
 
+-(cmythProgram*)program:(cmyth_proginfo_t)program
+{
+	self = [super init];
+
+	prog = program;
+
+	return self;
+}
+
 #define proginfo_method(type)					\
 -(NSString*)type						\
 {								\
 	char *type;						\
 	NSString *result = nil;					\
 								\
-	type = cmyth_proginfo_##type(program);			\
+	type = cmyth_proginfo_##type(prog);			\
 								\
 	if (type != NULL) {					\
 		result = [NSString initWithUTF8String:type];	\
@@ -36,7 +45,7 @@ proginfo_method(category)
 
 -(void) dealloc
 {
-	ref_release(program);
+	ref_release(prog);
 
 	[super dealloc];
 }
@@ -45,9 +54,10 @@ proginfo_method(category)
 
 @implementation cmythProgramList
 
--(cmythProgramList*)programList:(cmyth_conn_t)control
+-(cmythProgramList*)control:(cmyth_conn_t)control
 {
 	cmyth_proglist_t list;
+	int i, count;
 
 	if ((list=cmyth_proglist_get_all_recorded(control)) == NULL) {
 		return nil;
@@ -55,15 +65,36 @@ proginfo_method(category)
 
 	self = [super init];
 
-	proglist = list;
+	count = cmyth_proglist_get_count(list);
+
+	array = [[NSMutableArray alloc] init];
+
+	for (i=0; i<count; i++) {
+		cmyth_proginfo_t prog;
+		cmythProgram *program;
+
+		prog = cmyth_proglist_get_item(list, i);
+		program = [[cmythProgram alloc] program:prog];
+
+		[array addObject: program];
+	}
 
 	return self;
 }
 
+-(cmythProgram*)progitem:(int)n
+{
+	return [array objectAtIndex:n];
+}
+
+-(int) count
+{
+	return [array count];
+}
+
 -(void) dealloc
 {
-	ref_release(proglist);
-
+	[array release];
 	[super dealloc];
 }
 

@@ -11,9 +11,10 @@
 #include <cmyth/cmyth.h>
 
 @interface cmythProgram : NSObject {
-	cmyth_proginfo_t program;
+	cmyth_proginfo_t prog;
 }
 
+-(cmythProgram*)program:(cmyth_proginfo_t)program;
 -(NSString*)title;
 -(NSString*)subtitle;
 -(NSString*)description;
@@ -22,10 +23,10 @@
 @end
 
 @interface cmythProgramList : NSObject {
-	cmyth_proglist_t proglist;
+	NSMutableArray *array;
 }
 
--(cmythProgramList*)programList:(cmyth_conn_t)control;
+-(cmythProgramList*)control:(cmyth_conn_t)control;
 -(cmythProgram*)progitem:(int)n;
 -(int) count;
 
