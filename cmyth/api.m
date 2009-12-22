@@ -31,7 +31,7 @@
 	type = cmyth_proginfo_##type(prog);			\
 								\
 	if (type != NULL) {					\
-		result = [NSString initWithUTF8String:type];	\
+		result = [NSString stringWithUTF8String:type];	\
 		ref_release(type);				\
 	}							\
 								\
@@ -112,6 +112,10 @@ proginfo_method(category)
 
 	if (port == 0) {
 		port = 6543;
+	}
+
+	if (host == NULL) {
+		return nil;
 	}
 
 	if ((c=cmyth_conn_connect_ctrl(host, port, len, tcp)) == NULL) {
