@@ -15,10 +15,27 @@
 }
 
 -(cmythProgram*)program:(cmyth_proginfo_t)program;
+-(cmyth_proginfo_t)proginfo;
 -(NSString*)title;
 -(NSString*)subtitle;
 -(NSString*)description;
 -(NSString*)category;
+
+@end
+
+@interface cmythFile : NSObject {
+	cmyth_conn_t conn;
+	cmyth_file_t file;
+	int sockfd;
+	int portno;
+	long long length;
+}
+
+-(cmythFile*)openWith:(cmythProgram*)program;
+
+-(void)server;
+
+-(int)portNumber;
 
 @end
 
