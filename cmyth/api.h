@@ -51,10 +51,12 @@
 
 @interface cmyth : NSObject {
 	cmyth_conn_t control;
+	cmyth_conn_t event;
 }
 
 -(cmyth*) server:(NSString*) server port: (unsigned short) port;
 -(int) protocol_version;
 -(cmythProgramList*)programList;
+-(int)getEvent:(cmyth_event_t*)event;
 
 @end

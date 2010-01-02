@@ -419,7 +419,7 @@ err:
 -(cmyth*) server:(NSString*) server
 	    port: (unsigned short) port
 {
-	cmyth_conn_t c;
+	cmyth_conn_t c, e;
 	char *host = [server UTF8String];
 	int len = 16*1024;
 	int tcp = 4096;
@@ -435,13 +435,18 @@ err:
 	if ((c=cmyth_conn_connect_ctrl(host, port, len, tcp)) == NULL) {
 		return nil;
 	}
+	if ((e=cmyth_conn_connect_event(host, port, len, tcp)) == NULL) {
+		return nil;
+	}
 
 	self = [super init];
 
 	if (self) {
 		control = c;
+		event = e;
 	} else {
 		control = NULL;
+		event = NULL;
 	}
 
 	return self;
@@ -461,9 +466,25 @@ err:
 	return list;
 }
 
+-(int)getEvent:(cmyth_event_t*)event
+{
+	struct timeval tv;
+
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+
+	if (cmyth_event_select(self->event, &tv) > 0) {
+		*event = cmyth_event_get(self->event, NULL, 0);
+		return 0;
+	}
+
+	return -1;
+}
+
 -(void) dealloc
 {
 	ref_release(control);
+	ref_release(event);
 
 	[super dealloc];
 }
