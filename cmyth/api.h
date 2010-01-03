@@ -20,6 +20,8 @@
 -(NSString*)subtitle;
 -(NSString*)description;
 -(NSString*)category;
+-(NSString*)pathname;
+-(NSString*)date;
 
 @end
 
@@ -29,9 +31,12 @@
 	int sockfd;
 	int portno;
 	long long length;
+	NSString *vlc_host;
+	NSString *vlc_path;
 }
 
 -(cmythFile*)openWith:(cmythProgram*)program;
+-(cmythFile*)transcodeWith:(cmythProgram*)program vlcHost:(NSString*)host vlcPath:(NSString*)path;
 
 -(void)server;
 

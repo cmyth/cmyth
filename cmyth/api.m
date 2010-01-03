@@ -51,6 +51,22 @@ proginfo_method(title)
 proginfo_method(subtitle)
 proginfo_method(description)
 proginfo_method(category)
+proginfo_method(pathname)
+
+-(NSString*)date
+{
+	cmyth_timestamp_t ts;
+	time_t t;
+
+	ts = cmyth_proginfo_rec_start(prog);
+	t = cmyth_timestamp_to_unixtime(ts);
+
+	NSDate *date = [NSDate dateWithTimeIntervalSince1970:t];
+
+	ref_release(ts);
+
+	return [date description];
+}
 
 -(void) dealloc
 {
@@ -356,6 +372,12 @@ create_socket(int *f, int *p)
 err:
 	close(sockfd);
 
+	return nil;
+}
+
+-(cmythFile*)transcodeWith:(cmythProgram*)program
+		   vlcHost:(NSString*)host vlcPath:(NSString*)path
+{
 	return nil;
 }
 
