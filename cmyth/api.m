@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #include <cmyth/cmyth.h>
 #include <refmem/refmem.h>
@@ -31,20 +32,20 @@
 	return prog;
 }
 
-#define proginfo_method(type)					\
--(NSString*)type						\
-{								\
-	char *type;						\
-	NSString *result = nil;					\
-								\
-	type = cmyth_proginfo_##type(prog);			\
-								\
-	if (type != NULL) {					\
-		result = [NSString stringWithUTF8String:type];	\
-		ref_release(type);				\
-	}							\
-								\
-	return result;						\
+#define proginfo_method(type)						\
+-(NSString*)type							\
+{									\
+	char *type;							\
+	NSString *result = nil;						\
+									\
+	type = cmyth_proginfo_##type(prog);				\
+									\
+	if (type != NULL) {						\
+		result = [[NSString alloc] initWithUTF8String:type];	\
+		ref_release(type);					\
+	}								\
+									\
+	return result;							\
 }
 
 proginfo_method(title)
@@ -375,10 +376,158 @@ err:
 	return nil;
 }
 
--(cmythFile*)transcodeWith:(cmythProgram*)program
-		   vlcHost:(NSString*)host vlcPath:(NSString*)path
+static int send_password(int fd)
 {
-	return nil;
+	char buf[128];
+	char *passwd = "admin\n";
+
+	memset(buf, 0, sizeof(buf));
+
+	struct timeval tv;
+	fd_set fds;
+
+	tv.tv_sec = 5;
+	tv.tv_usec = 0;
+
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+	if (select(fd + 1, &fds, NULL, NULL, &tv) < 0) {
+		return -1;
+	}
+
+	errno = 0;
+	if (read(fd, buf, sizeof(buf)) <= 0) {
+		return -1;
+	}
+
+	if (strncmp(buf, "Password:", 9) != 0) {
+		return -1;
+	}
+
+	my_write(fd, passwd, strlen(passwd));
+
+	memset(buf, 0, sizeof(buf));
+
+	read(fd, buf, sizeof(buf));
+
+	if (strstr(buf, "> ") == NULL) {
+		return -1;
+	}
+
+	return 0;
+}
+
+static void sighandler(int sig)
+{
+}
+
+static int send_commands(int fd, char *src, char *dest, char *file)
+{
+	char *cmd_del = "del %s\n";
+	char *cmd_new = "new %s broadcast enabled\n";
+	char *cmd_input = "setup %s input %s/%s\n";
+	char *cmd_output = "setup %s output #transcode{width=480,canvas-height=320,vcodec=mp4v,vb=768,acodec=mp4a,ab=192,channels=2}:standard{access=file,mux=mp4,dst=%s/%s.mp4}\n";
+	char *cmd_play = "control %s play\n";
+	char buf[512], id[128];
+
+	snprintf(id, sizeof(id), "mvpmc.iphone.%s", file);
+
+	snprintf(buf, sizeof(buf), cmd_del, id);
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	snprintf(buf, sizeof(buf), cmd_new, id);
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	snprintf(buf, sizeof(buf), cmd_input, id, src, file);
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	snprintf(buf, sizeof(buf), cmd_output, id, dest, file);
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	snprintf(buf, sizeof(buf), cmd_play, id);
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+-(cmythFile*)transcodeWith:(cmythProgram*)program
+		  mythPath:(NSString*)myth
+		   vlcHost:(NSString*)host
+		   vlcPath:(NSString*)path
+{
+	cmythFile *f = nil;
+
+	if ((program == nil) || (myth == nil) ||
+	    (host == nil) || (path == nil)) {
+		return nil;
+	}
+
+	char *h = [host UTF8String];
+	int fd, ret;
+	struct sockaddr_in sa;
+	struct hostent* server;
+
+	server = gethostbyname(h);
+
+	if ((fd=socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		return nil;
+	}
+
+	sa.sin_family = AF_INET;
+	sa.sin_port = htons(4212);
+	memcpy((char*)&sa.sin_addr,(char*)server->h_addr,server->h_length);
+
+	int set = 1;
+	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+
+	void (*old_sighandler)(int);
+	int old_alarm;
+
+	NSLog(@"VLC connect to %@", host);
+	old_sighandler = signal(SIGALRM, sighandler);
+	old_alarm = alarm(5);
+	ret = connect(fd, (struct sockaddr *)&sa, sizeof(sa));
+	signal(SIGALRM, old_sighandler);
+	alarm(old_alarm);
+
+	if (ret < 0) {
+		NSLog(@"VLC connect failed");
+		close(fd);
+		return nil;
+	}
+
+	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+
+	if (send_password(fd) != 0) {
+		NSLog(@"VLC login failed");
+		close(fd);
+		return nil;
+	}
+
+	NSLog(@"VLC password accepted");
+
+	NSString *file = [program pathname];
+	ret = send_commands(fd, [myth UTF8String],
+			    [path UTF8String], [file UTF8String]);
+
+	close(fd);
+
+	if (ret == 0) {
+		self = [super init];
+		return self;
+	} else {
+		return nil;
+	}
 }
 
 -(int)portNumber
