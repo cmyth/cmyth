@@ -69,6 +69,22 @@ proginfo_method(pathname)
 	return [date description];
 }
 
+-(int)seconds
+{
+	cmyth_timestamp_t ts, te;
+	time_t t;
+
+	ts = cmyth_proginfo_rec_start(prog);
+	te = cmyth_proginfo_rec_end(prog);
+
+	t = cmyth_timestamp_to_unixtime(te) - cmyth_timestamp_to_unixtime(ts);
+
+	ref_release(ts);
+	ref_release(te);
+
+	return t;
+}
+
 -(void) dealloc
 {
 	ref_release(prog);

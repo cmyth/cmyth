@@ -22,6 +22,7 @@
 -(NSString*)category;
 -(NSString*)pathname;
 -(NSString*)date;
+-(int)seconds;
 
 @end
 
