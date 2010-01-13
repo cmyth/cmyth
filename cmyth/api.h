@@ -37,6 +37,16 @@
 
 @end
 
+typedef enum {
+	CMYTH_TRANSCODE_INVALID = 0,
+	CMYTH_TRANSCODE_UNKNOWN,
+	CMYTH_TRANSCODE_ERROR,
+	CMYTH_TRANSCODE_STARTING,
+	CMYTH_TRANSCODE_IN_PROGRESS,
+	CMYTH_TRANSCODE_COMPLETE,
+	CMYTH_TRANSCODE_CONNECT_FAILED,
+} cmythTranscodeState;
+
 @interface cmythFile : NSObject {
 	cmyth_conn_t conn;
 	cmyth_file_t file;
@@ -45,14 +55,28 @@
 	long long length;
 	NSString *vlc_host;
 	NSString *vlc_path;
+	cmythTranscodeState state;
+	volatile float progress;
+	cmythProgram *program;
+	NSString *srcPath;
+	NSString *dstPath;
+	NSString *vlc;
+	NSLock *lock;
+	volatile int done;
 }
 
 -(cmythFile*)openWith:(cmythProgram*)program;
 -(cmythFile*)transcodeWith:(cmythProgram*)program vlcHost:(NSString*)host vlcPath:(NSString*)path;
 
 -(void)server;
+-(void)transcoder;
+-(void)transcodeStop;
 
 -(int)portNumber;
+-(cmythTranscodeState)transcodeState;
+-(float)transcodeProgress;
+
+@property (retain,nonatomic) NSLock *lock;
 
 @end
 

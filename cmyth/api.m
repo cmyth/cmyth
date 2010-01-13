@@ -107,6 +107,8 @@ proginfo_method(pathname)
 
 @implementation cmythFile
 
+@synthesize lock;
+
 typedef struct {
 	char *command;
 	char *file;
@@ -448,6 +450,69 @@ static void sighandler(int sig)
 {
 }
 
+static int issue_command(int fd, char *buf)
+{
+	struct timeval tv;
+	fd_set fds;
+	char input[512];
+
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	tv.tv_sec = 0;
+	tv.tv_usec = 100;
+
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+	if (select(fd + 1, &fds, NULL, NULL, &tv) < 0) {
+		return -1;
+	}
+
+	read(fd, input, sizeof(input));
+
+	return 0;
+}
+
+static int command_result(int fd, char *buf, char *result, int max)
+{
+	struct timeval tv;
+	fd_set fds;
+	int len;
+	char *p;
+
+	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+		return -1;
+	}
+
+	len = 0;
+	memset(result, 0, max);
+	max--;
+	while (len < max) {
+		char *p;
+		int n;
+
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+
+		FD_ZERO(&fds);
+		FD_SET(fd, &fds);
+		if (select(fd + 1, &fds, NULL, NULL, &tv) <= 0) {
+			break;
+		}
+
+		n = read(fd, result+len, max-len);
+
+		if (n <= 0) {
+			break;
+		}
+
+		len += n;
+	}
+
+	return len;
+}
+
 static int send_commands(int fd, char *src, char *dest, char *file)
 {
 	char *cmd_del = "del %s\n";
@@ -460,31 +525,148 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 	snprintf(id, sizeof(id), "mvpmc.iphone.%s", file);
 
 	snprintf(buf, sizeof(buf), cmd_del, id);
-	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+	if (issue_command(fd, buf) != 0) {
 		return -1;
 	}
 
 	snprintf(buf, sizeof(buf), cmd_new, id);
-	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+	if (issue_command(fd, buf) != 0) {
 		return -1;
 	}
 
 	snprintf(buf, sizeof(buf), cmd_input, id, src, file);
-	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+	if (issue_command(fd, buf) != 0) {
 		return -1;
 	}
 
 	snprintf(buf, sizeof(buf), cmd_output, id, dest, file);
-	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+	if (issue_command(fd, buf) != 0) {
 		return -1;
 	}
 
 	snprintf(buf, sizeof(buf), cmd_play, id);
-	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
+	if (issue_command(fd, buf) != 0) {
 		return -1;
 	}
 
 	return 0;
+}
+
+-(void)transcoder
+{
+	char *h = [vlc UTF8String];
+	int fd, ret;
+	struct sockaddr_in sa;
+	struct hostent* server;
+
+	server = gethostbyname(h);
+
+	if ((fd=socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		self->state = CMYTH_TRANSCODE_CONNECT_FAILED;
+		return;
+	}
+
+	sa.sin_family = AF_INET;
+	sa.sin_port = htons(4212);
+	memcpy((char*)&sa.sin_addr,(char*)server->h_addr,server->h_length);
+
+	int set = 1;
+	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+
+	void (*old_sighandler)(int);
+	int old_alarm;
+
+	NSLog(@"VLC connect to %@", vlc);
+	old_sighandler = signal(SIGALRM, sighandler);
+	old_alarm = alarm(5);
+	ret = connect(fd, (struct sockaddr *)&sa, sizeof(sa));
+	signal(SIGALRM, old_sighandler);
+	alarm(old_alarm);
+
+	if (ret < 0) {
+		NSLog(@"VLC connect failed");
+		close(fd);
+		self->state = CMYTH_TRANSCODE_CONNECT_FAILED;
+		return;
+	}
+
+	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+
+	if (send_password(fd) != 0) {
+		NSLog(@"VLC login failed");
+		close(fd);
+		self->state = CMYTH_TRANSCODE_CONNECT_FAILED;
+		return;
+	}
+
+	NSLog(@"VLC password accepted");
+
+	self->state = CMYTH_TRANSCODE_STARTING;
+
+	NSString *file = [program pathname];
+	ret = send_commands(fd, [srcPath UTF8String],
+			    [dstPath UTF8String], [file UTF8String]);
+
+	if (ret == 0) {
+		state = CMYTH_TRANSCODE_IN_PROGRESS;
+	} else {
+		state = CMYTH_TRANSCODE_ERROR;
+		close(fd);
+		return;
+	}
+
+	char *fn = [file UTF8String];
+	char *pos = "position : ";
+	while (!done) {
+		char id[256], cmd[512], line[256], output[4096];
+		int n;
+
+		sleep(1);
+		snprintf(id, sizeof(id), "mvpmc.iphone.%s", fn);
+		snprintf(cmd, sizeof(cmd), "show %s\n", id);
+
+		if ((n=command_result(fd, cmd, output, sizeof(output))) > 0) {
+			char *p = strstr(output, pos);
+			if (p != NULL) {
+				char *R = strchr(p, '\r');
+				char *N = strchr(p, '\n');
+
+				if (R) {
+					*R = '\0';
+				}
+				if (N) {
+					*N = '\0';
+				}
+
+				p += strlen(pos);
+				progress = strtof(p, NULL);
+			} else {
+				if (strchr(p, "> ") != NULL) {
+					progress = 1;
+					break;
+				}
+			}
+		} else {
+			NSLog(@"VLC read failed with n %d",n);
+		}
+	}
+
+	if (done == 1) {
+		char id[256], cmd[512];
+
+		snprintf(id, sizeof(id), "mvpmc.iphone.%s", fn);
+		snprintf(cmd, sizeof(cmd), "del %s\n", id);
+
+		NSLog(@"VLC %s",cmd);
+
+		issue_command(fd, cmd);
+	}
+
+	close(fd);
+
+	[lock lock];
+	done = 2;
+	[lock unlock];
 }
 
 -(cmythFile*)transcodeWith:(cmythProgram*)program
@@ -499,67 +681,60 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 		return nil;
 	}
 
-	char *h = [host UTF8String];
-	int fd, ret;
-	struct sockaddr_in sa;
-	struct hostent* server;
+	self = [super init];
 
-	server = gethostbyname(h);
+	self->state = CMYTH_TRANSCODE_UNKNOWN;
+	self->program = program;
+	self->srcPath = myth;
+	self->dstPath = path;
+	self->vlc = host;
 
-	if ((fd=socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		return nil;
+	[NSThread detachNewThreadSelector:@selector(transcoder)
+		  toTarget:self withObject:nil];
+
+	return self;
+}
+
+-(void)transcodeStop
+{
+	[lock lock];
+	if (done == 0) {
+		done = 1;
+	}
+	[lock unlock];
+
+	while (done == 1) {
+		usleep(100);
+	}
+}
+
+-(float)transcodeProgress
+{
+	float ret;
+
+	switch (state) {
+	case CMYTH_TRANSCODE_COMPLETE:
+		ret = 1.0;
+		break;
+	case CMYTH_TRANSCODE_IN_PROGRESS:
+		ret = progress;
+		break;
+	default:
+		ret = 0.0;
+		break;
 	}
 
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(4212);
-	memcpy((char*)&sa.sin_addr,(char*)server->h_addr,server->h_length);
-
-	int set = 1;
-	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
-
-	void (*old_sighandler)(int);
-	int old_alarm;
-
-	NSLog(@"VLC connect to %@", host);
-	old_sighandler = signal(SIGALRM, sighandler);
-	old_alarm = alarm(5);
-	ret = connect(fd, (struct sockaddr *)&sa, sizeof(sa));
-	signal(SIGALRM, old_sighandler);
-	alarm(old_alarm);
-
-	if (ret < 0) {
-		NSLog(@"VLC connect failed");
-		close(fd);
-		return nil;
-	}
-
-	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
-
-	if (send_password(fd) != 0) {
-		NSLog(@"VLC login failed");
-		close(fd);
-		return nil;
-	}
-
-	NSLog(@"VLC password accepted");
-
-	NSString *file = [program pathname];
-	ret = send_commands(fd, [myth UTF8String],
-			    [path UTF8String], [file UTF8String]);
-
-	close(fd);
-
-	if (ret == 0) {
-		self = [super init];
-		return self;
-	} else {
-		return nil;
-	}
+	return ret;
 }
 
 -(int)portNumber
 {
 	return portno;
+}
+
+-(cmythTranscodeState)transcodeState
+{
+	return state;
 }
 
 @end
