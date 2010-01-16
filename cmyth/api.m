@@ -17,8 +17,10 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
@@ -446,10 +448,6 @@ static int send_password(int fd)
 	return 0;
 }
 
-static void sighandler(int sig)
-{
-}
-
 static int issue_command(int fd, char *buf)
 {
 	struct timeval tv;
@@ -573,15 +571,15 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 	int set = 1;
 	setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
 
-	void (*old_sighandler)(int);
-	int old_alarm;
+#if defined(TCP_CONNECTIONTIMEOUT)
+	struct timeval tv;
+	tv.tv_sec = 5;
+	tv.tv_usec = 0;
+	setsockopt(fd, IPPROTO_TCP, TCP_CONNECTIONTIMEOUT, &tv, sizeof(tv));
+#endif
 
 	NSLog(@"VLC connect to %@", vlc);
-	old_sighandler = signal(SIGALRM, sighandler);
-	old_alarm = alarm(5);
 	ret = connect(fd, (struct sockaddr *)&sa, sizeof(sa));
-	signal(SIGALRM, old_sighandler);
-	alarm(old_alarm);
 
 	if (ret < 0) {
 		NSLog(@"VLC connect failed");
@@ -654,12 +652,16 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 	if (done == 1) {
 		char id[256], cmd[512];
 
+		state = CMYTH_TRANSCODE_STOPPING;
+
 		snprintf(id, sizeof(id), "mvpmc.iphone.%s", fn);
 		snprintf(cmd, sizeof(cmd), "del %s\n", id);
 
 		NSLog(@"VLC %s",cmd);
 
 		issue_command(fd, cmd);
+
+		state = CMYTH_TRANSCODE_STOPPED;
 	}
 
 	close(fd);
@@ -702,10 +704,6 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 		done = 1;
 	}
 	[lock unlock];
-
-	while (done == 1) {
-		usleep(100);
-	}
 }
 
 -(float)transcodeProgress
