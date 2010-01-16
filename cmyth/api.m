@@ -17,6 +17,9 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -245,13 +248,13 @@ send_header(int fd, url_t *u, long long length)
 static long long
 send_data(int fd, url_t *u, cmyth_file_t file)
 {
-	unsigned char *buf;
+	char *buf;
 	unsigned long long pos;
 	long long wrote = 0;
 
 #define BSIZE (8*1024)
-	if ((buf=(unsigned char*)malloc(BSIZE)) == NULL) {
-		return;
+	if ((buf=(char*)malloc(BSIZE)) == NULL) {
+		return 0;
 	}
 
 	pos = cmyth_file_seek(file, u->start, SEEK_SET);
@@ -345,7 +348,7 @@ create_socket(int *f, int *p)
 		sa.sin_port = htons(port);
 		sa.sin_addr.s_addr = INADDR_ANY;
 
-		rc = bind(fd, &sa, sizeof(sa));
+		rc = bind(fd, (void*)&sa, sizeof(sa));
 	} while ((rc != 0) && (attempts++ < 100));
 
 	if (rc != 0) {
@@ -477,7 +480,6 @@ static int command_result(int fd, char *buf, char *result, int max)
 	struct timeval tv;
 	fd_set fds;
 	int len;
-	char *p;
 
 	if (my_write(fd, buf, strlen(buf)) != strlen(buf)) {
 		return -1;
@@ -487,7 +489,6 @@ static int command_result(int fd, char *buf, char *result, int max)
 	memset(result, 0, max);
 	max--;
 	while (len < max) {
-		char *p;
 		int n;
 
 		tv.tv_sec = 1;
@@ -511,7 +512,8 @@ static int command_result(int fd, char *buf, char *result, int max)
 	return len;
 }
 
-static int send_commands(int fd, char *src, char *dest, char *file)
+static int send_commands(int fd, const char *src, const char *dest,
+			 const char *file)
 {
 	char *cmd_del = "del %s\n";
 	char *cmd_new = "new %s broadcast enabled\n";
@@ -552,7 +554,7 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 
 -(void)transcoder
 {
-	char *h = [vlc UTF8String];
+	const char *h = [vlc UTF8String];
 	int fd, ret;
 	struct sockaddr_in sa;
 	struct hostent* server;
@@ -601,9 +603,9 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 
 	self->state = CMYTH_TRANSCODE_STARTING;
 
-	NSString *file = [program pathname];
+	NSString *f = [cProgram pathname];
 	ret = send_commands(fd, [srcPath UTF8String],
-			    [dstPath UTF8String], [file UTF8String]);
+			    [dstPath UTF8String], [f UTF8String]);
 
 	if (ret == 0) {
 		state = CMYTH_TRANSCODE_IN_PROGRESS;
@@ -613,10 +615,10 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 		return;
 	}
 
-	char *fn = [file UTF8String];
+	const char *fn = [f UTF8String];
 	char *pos = "position : ";
 	while (!done) {
-		char id[256], cmd[512], line[256], output[4096];
+		char id[256], cmd[512], output[4096];
 		int n;
 
 		sleep(1);
@@ -639,7 +641,7 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 				p += strlen(pos);
 				progress = strtof(p, NULL);
 			} else {
-				if (strchr(p, "> ") != NULL) {
+				if (strstr(p, "> ") != NULL) {
 					progress = 1;
 					break;
 				}
@@ -676,8 +678,6 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 		   vlcHost:(NSString*)host
 		   vlcPath:(NSString*)path
 {
-	cmythFile *f = nil;
-
 	if ((program == nil) || (myth == nil) ||
 	    (host == nil) || (path == nil)) {
 		return nil;
@@ -686,7 +686,7 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 	self = [super init];
 
 	self->state = CMYTH_TRANSCODE_UNKNOWN;
-	self->program = program;
+	self->cProgram = program;
 	self->srcPath = myth;
 	self->dstPath = path;
 	self->vlc = host;
@@ -791,7 +791,7 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 	    port: (unsigned short) port
 {
 	cmyth_conn_t c, e;
-	char *host = [server UTF8String];
+	const char *host = [server UTF8String];
 	int len = 16*1024;
 	int tcp = 4096;
 
@@ -803,10 +803,10 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 		return nil;
 	}
 
-	if ((c=cmyth_conn_connect_ctrl(host, port, len, tcp)) == NULL) {
+	if ((c=cmyth_conn_connect_ctrl((char*)host, port, len, tcp)) == NULL) {
 		return nil;
 	}
-	if ((e=cmyth_conn_connect_event(host, port, len, tcp)) == NULL) {
+	if ((e=cmyth_conn_connect_event((char*)host, port, len, tcp)) == NULL) {
 		return nil;
 	}
 
@@ -814,10 +814,10 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 
 	if (self) {
 		control = c;
-		event = e;
+		econn = e;
 	} else {
 		control = NULL;
-		event = NULL;
+		econn = NULL;
 	}
 
 	return self;
@@ -844,8 +844,8 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 
-	if (cmyth_event_select(self->event, &tv) > 0) {
-		*event = cmyth_event_get(self->event, NULL, 0);
+	if (cmyth_event_select(econn, &tv) > 0) {
+		*event = cmyth_event_get(econn, NULL, 0);
 		return 0;
 	}
 
@@ -855,7 +855,7 @@ static int send_commands(int fd, char *src, char *dest, char *file)
 -(void) dealloc
 {
 	ref_release(control);
-	ref_release(event);
+	ref_release(econn);
 
 	[super dealloc];
 }

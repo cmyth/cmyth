@@ -24,6 +24,14 @@
 #include <atomic.h>
 #endif
 
+#if defined(__APPLE__)
+#include <libkern/OSAtomic.h>
+
+typedef	volatile int32_t mvp_atomic_t;
+
+#define __mvp_atomic_increment(x)	OSAtomicIncrement32(x)
+#define __mvp_atomic_decrement(x)	OSAtomicDecrement32(x)
+#else
 typedef	volatile unsigned int mvp_atomic_t;
 
 /**
@@ -60,7 +68,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
-#elif defined __arm__XXX
+#elif defined __arm__
 	int tmp1, tmp2;
 	int inc = 1;
 	__asm__ __volatile__ (
@@ -122,7 +130,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
-#elif defined __arm__XXX
+#elif defined __arm__
 	int tmp1, tmp2;
 	int inc = -1;
 	__asm__ __volatile__ (
@@ -161,6 +169,8 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 #endif
 	return __val;
 }
+#endif
+
 #define mvp_atomic_inc __mvp_atomic_inc
 static inline int mvp_atomic_inc(mvp_atomic_t *a) {
 	return __mvp_atomic_increment(a);

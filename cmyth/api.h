@@ -59,7 +59,7 @@ typedef enum {
 	NSString *vlc_path;
 	cmythTranscodeState state;
 	volatile float progress;
-	cmythProgram *program;
+	cmythProgram *cProgram;
 	NSString *srcPath;
 	NSString *dstPath;
 	NSString *vlc;
@@ -68,7 +68,7 @@ typedef enum {
 }
 
 -(cmythFile*)openWith:(cmythProgram*)program;
--(cmythFile*)transcodeWith:(cmythProgram*)program vlcHost:(NSString*)host vlcPath:(NSString*)path;
+-(cmythFile*)transcodeWith:(cmythProgram*)program mythPath:(NSString*)myth vlcHost:(NSString*)host vlcPath:(NSString*)path;
 
 -(void)server;
 -(void)transcoder;
@@ -94,7 +94,7 @@ typedef enum {
 
 @interface cmyth : NSObject {
 	cmyth_conn_t control;
-	cmyth_conn_t event;
+	cmyth_conn_t econn;
 }
 
 -(cmyth*) server:(NSString*) server port: (unsigned short) port;
