@@ -651,25 +651,21 @@ static int send_commands(int fd, const char *src, const char *dest,
 		}
 	}
 
-	if (done == 1) {
-		char id[256], cmd[512];
+	char id[256], cmd[512];
 
-		state = CMYTH_TRANSCODE_STOPPING;
+	snprintf(id, sizeof(id), "mvpmc.iphone.%s", fn);
+	snprintf(cmd, sizeof(cmd), "del %s\n", id);
 
-		snprintf(id, sizeof(id), "mvpmc.iphone.%s", fn);
-		snprintf(cmd, sizeof(cmd), "del %s\n", id);
-
-		NSLog(@"VLC %s",cmd);
-
-		issue_command(fd, cmd);
-
-		state = CMYTH_TRANSCODE_STOPPED;
-	}
+	issue_command(fd, cmd);
 
 	close(fd);
 
 	[lock lock];
-	done = 2;
+	if (done == 1) {
+		state = CMYTH_TRANSCODE_STOPPED;
+	} else {
+		state = CMYTH_TRANSCODE_COMPLETE;
+	}
 	[lock unlock];
 }
 
@@ -701,6 +697,7 @@ static int send_commands(int fd, const char *src, const char *dest,
 {
 	[lock lock];
 	if (done == 0) {
+		state = CMYTH_TRANSCODE_STOPPING;
 		done = 1;
 	}
 	[lock unlock];
