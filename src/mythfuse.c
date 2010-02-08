@@ -113,6 +113,16 @@ static struct option opts[] = {
 		}					\
 	}
 
+static char *README =
+	"This is the mythfuse filesystem.\n\n"
+	"Directories will be created dynamically in the root directory of\n"
+	"the filesystem as they are accessed.  Their names will be the IP\n"
+	"address or hostname of the MythTV backend being accessed.\n";
+static char *README_PATH = "/README";
+
+static time_t readme_time = 0;
+static time_t readme_atime = 0;
+
 static void*
 event_loop(void *arg)
 {
@@ -402,12 +412,23 @@ out:
 	return ret;
 }
 
+static int readme_open(const char *path, struct fuse_file_info *fi)
+{
+	time(&readme_atime);
+
+	return 0;
+}
+
 static int myth_open(const char *path, struct fuse_file_info *fi)
 {
 	int i, f;
 	struct path_info info;
 
 	debug("%s(): path '%s'\n", __FUNCTION__, path);
+
+	if (strcmp(path, README_PATH) == 0) {
+		return readme_open(path, fi);
+	}
 
 	memset(&info, 0, sizeof(info));
 	if (lookup_path(path, &info) < 0) {
@@ -646,6 +667,24 @@ finish:
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
 
+	if (strcmp(path, "/") == 0) {
+		struct stat st;
+		memset(&st, 0, sizeof(st));
+		st.st_mode = S_IFREG | 0444;
+		st.st_size = strlen(README);
+		st.st_nlink = 1;
+
+		if (readme_time == 0) {
+			time(&readme_time);
+			readme_atime = readme_time;
+		}
+		st.st_atime = readme_atime;
+		st.st_mtime = readme_time;
+		st.st_ctime = readme_time;
+
+		filler(buf, "README", &st, 0);
+	}
+
 	return 0;
 }
 
@@ -801,12 +840,28 @@ static int ga_all(struct path_info *info, struct stat *stbuf)
 	return -ENOENT;
 }
 
+static int readme_getattr(const char *path, struct stat *stbuf)
+{
+	stbuf->st_mode = S_IFREG | 0444;
+	stbuf->st_nlink = 2;
+	stbuf->st_size = strlen(README);
+	stbuf->st_atime = readme_atime;
+	stbuf->st_mtime = readme_time;
+	stbuf->st_ctime = readme_time;
+
+	return 0;
+}
+
 static int myth_getattr(const char *path, struct stat *stbuf)
 {
 	struct path_info info;
 	int i;
 
 	debug("%s(): path '%s'\n", __FUNCTION__, path);
+
+	if (strcmp(path, README_PATH) == 0) {
+		return readme_getattr(path, stbuf);
+	}
 
 	memset(&info, 0, sizeof(info));
 	if (lookup_path(path, &info) < 0) {
@@ -891,6 +946,29 @@ fill_buffer(int i, char *buf, size_t size)
 	return tot;
 }
 
+static int readme_read(const char *path, char *buf, size_t size, off_t offset,
+		       struct fuse_file_info *fi)
+{
+	int len = strlen(README);
+	int n;
+
+	n = len - offset;
+
+	if (n > size) {
+		n = size;
+	}
+
+	if (n > 0) {
+		memcpy(buf, README+offset, n);
+	} else {
+		n = 0;
+	}
+
+	time(&readme_atime);
+
+	return n;
+}
+
 static int myth_read(const char *path, char *buf, size_t size, off_t offset,
 		     struct fuse_file_info *fi)
 {
@@ -898,6 +976,10 @@ static int myth_read(const char *path, char *buf, size_t size, off_t offset,
 
 	debug("%s(): path '%s' size %lld\n", __FUNCTION__, path,
 	      (long long)size);
+
+	if (strcmp(path, README_PATH) == 0) {
+		return readme_read(path, buf, size, offset, fi);
+	}
 
 	if (fi->fh < 0) {
 		return -ENOENT;
