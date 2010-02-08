@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2008-2009, Jon Gettler
+ *  Copyright (C) 2008-2010, Jon Gettler
  *  http://www.mvpmc.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -881,8 +881,8 @@ fill_buffer(int i, char *buf, size_t size)
 		}
 	}
 
-	debug("%s(): tot %d len %d n %d size %d\n", __FUNCTION__,
-	      tot, len, n, size);
+	debug("%s(): tot %d len %d n %d size %lld\n", __FUNCTION__,
+	      tot, len, n, (long long)size);
 
 	if (len < 0) {
 		return -1;
@@ -896,7 +896,8 @@ static int myth_read(const char *path, char *buf, size_t size, off_t offset,
 {
 	int tot, len = 0;
 
-	debug("%s(): path '%s' size %d\n", __FUNCTION__, path, size);
+	debug("%s(): path '%s' size %lld\n", __FUNCTION__, path,
+	      (long long)size);
 
 	if (fi->fh < 0) {
 		return -ENOENT;
@@ -920,7 +921,7 @@ static int myth_read(const char *path, char *buf, size_t size, off_t offset,
 	files[fi->fh].offset = offset + tot;
 
 	debug("%s(): read %d bytes at %lld (len %d)\n", __FUNCTION__,
-	      tot, offset, len);
+	      tot, (long long)offset, len);
 
 	if (len < 0) {
 		goto fail;
@@ -948,7 +949,8 @@ static int myth_readlink(const char *path, char *buf, size_t size)
 	cmyth_proglist_t list;
 	int count;
 
-	debug("%s(): path '%s' size %d\n", __FUNCTION__, path, size);
+	debug("%s(): path '%s' size %lld\n", __FUNCTION__, path,
+	      (long long)size);
 
 	memset(&info, 0, sizeof(info));
 	if (lookup_path(path, &info) < 0) {
