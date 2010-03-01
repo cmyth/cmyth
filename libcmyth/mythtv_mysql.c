@@ -823,16 +823,21 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 	MYSQL_ROW row;
 	int resolution = 30;
 	char * query_str;
+	int rows = 0;
+	cmyth_mysql_query_t * query;
+	query = cmyth_mysql_query_create(db,query_str);
+	cmyth_commbreak_t commbreak = NULL;
+	int i = 0;
+	long long start_previous = 0;
+	long long end_previous = 0;
+
 	if (conn_version>=43) {
 		query_str = "SELECT m.type,m.mark,s.mark,s.offset  FROM recordedmarkup m INNER JOIN recordedseek AS s ON m.chanid = s.chanid AND m.starttime = s.starttime  WHERE m.chanid = ? AND m.starttime = ? AND m.type in (?,?) and FLOOR(m.mark/?)=FLOOR(s.mark/?) ORDER BY `m`.`mark` LIMIT 300 ";
 	}
 	else { 
 		query_str = "SELECT m.type AS type, m.mark AS mark, s.offset AS offset FROM recordedmarkup m INNER JOIN recordedseek AS s ON (m.chanid = s.chanid AND m.starttime = s.starttime AND (FLOOR(m.mark / 15) + 1) = s.mark) WHERE m.chanid = ? AND m.starttime = ? AND m.type IN (?, ?) ORDER BY mark;";
 	}
-	int rows = 0;
-	cmyth_mysql_query_t * query;
-	query = cmyth_mysql_query_create(db,query_str);
-	cmyth_commbreak_t commbreak = NULL;
+
 		
 	cmyth_dbg(CMYTH_DBG_ERROR,"%s, query=%s\n", __FUNCTION__,query_str);
 
@@ -880,9 +885,6 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 	}
 	memset(breaklist->commbreak_list, 0, breaklist->commbreak_count * sizeof(cmyth_commbreak_t));
 
-	int i = 0;
-	long long start_previous = 0;
-	long long end_previous = 0;
 	if (conn_version >=43) {
 		while ((row = mysql_fetch_row(res))) {
 			if (safe_atoi(row[0]) == CMYTH_COMMBREAK_START) {
