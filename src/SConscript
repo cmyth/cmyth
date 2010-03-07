@@ -24,7 +24,12 @@ mythping = env.Program('mythping', 'mythping.c',
                        LIBS = libs,
                        LIBPATH = [ '../libcmyth', '../librefmem' ])
 
-targets = [ mythping ]
+mythcat = env.Program('mythcat', 'mythcat.c',
+                      CPPPATH = [ '../include' ],
+                      LIBS = libs,
+                      LIBPATH = [ '../libcmyth', '../librefmem' ])
+
+targets = [ mythping, mythcat ]
 
 if not env.GetOption('clean'):
     conf = Configure(env)

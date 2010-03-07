@@ -6,6 +6,7 @@
 *~
 .sconsign*
 *.pyc
+src/mythcat
 src/mythfuse
 src/mythping
 .sconf_temp
