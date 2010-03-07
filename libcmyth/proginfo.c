@@ -474,8 +474,8 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		sprintf(buf,
 			"%s 0[]:[]"
 			"%s[]:[]%s[]:[]%s[]:[]%s[]:[]%ld[]:[]"
-			"%s[]:[]%s[]:[]%s[]:[]%s[]:[]%lld[]:[]"
-			"%lld[]:[]%s[]:[]%s[]:[]%s[]:[]%ld[]:[]"
+			"%s[]:[]%s[]:[]%s[]:[]%s[]:[]%d[]:[]%d[]:[]"
+			"%s[]:[]%s[]:[]%s[]:[]%ld[]:[]"
 			"%ld[]:[]%s[]:[]%ld[]:[]%ld[]:[]%ld[]:[]"
 			"%s[]:[]%ld[]:[]%ld[]:[]%ld[]:[]%ld[]:[]"
 			"%ld[]:[]%s[]:[]%s[]:[]%ld[]:[]%ld[]:[]"
@@ -491,8 +491,8 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 			prog->proginfo_chansign,
 			prog->proginfo_chanicon,
 			prog->proginfo_url,
-			prog->proginfo_Length >> 32,
-			(prog->proginfo_Length & 0xffffffff),
+			(int32_t)(prog->proginfo_Length >> 32),
+			(int32_t)(prog->proginfo_Length & 0xffffffff),
 			start_ts,
 			end_ts,
 			prog->proginfo_unknown_0,
@@ -1274,8 +1274,8 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		sprintf(buf,
 			"%s %s[]:[]0[]:[]"
 			"%s[]:[]%s[]:[]%s[]:[]%s[]:[]%ld[]:[]"
-			"%s[]:[]%s[]:[]%s[]:[]%s[]:[]%lld[]:[]"
-			"%lld[]:[]%s[]:[]%s[]:[]%s[]:[]%ld[]:[]"
+			"%s[]:[]%s[]:[]%s[]:[]%s[]:[]%d[]:[]%d[]:[]"
+			"%s[]:[]%s[]:[]%s[]:[]%ld[]:[]"
 			"%ld[]:[]%s[]:[]%ld[]:[]%ld[]:[]%ld[]:[]"
 			"%s[]:[]%ld[]:[]%ld[]:[]%ld[]:[]%ld[]:[]"
 			"%ld[]:[]%s[]:[]%s[]:[]%ld[]:[]%ld[]:[]"
@@ -1291,8 +1291,8 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 			prog->proginfo_chansign,
 			prog->proginfo_chanicon,
 			prog->proginfo_url,
-			prog->proginfo_Length >> 32,
-			(prog->proginfo_Length & 0xffffffff),
+			(int32_t)(prog->proginfo_Length >> 32),
+			(int32_t)(prog->proginfo_Length & 0xffffffff),
 			start_ts,
 			end_ts,
 			prog->proginfo_unknown_0,
