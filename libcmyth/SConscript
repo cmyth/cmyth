@@ -3,6 +3,8 @@
 # libcmyth
 #
 
+import sys
+
 Import('env')
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
@@ -26,7 +28,11 @@ version = major + '.' + minor
 soname = 'libcmyth.so.' + version
 soname2 = 'libcmyth.so.' + major
 soname3 = 'libcmyth.so'
-linkflags = [ '-Wl,-soname,' + soname ]
+
+if sys.platform == 'darwin':
+    linkflags = [ ]
+else:
+    linkflags = [ '-Wl,-soname,' + soname ]
 
 static = env.StaticLibrary('cmyth', src,
                            LINKFLAGS = linkflags,
@@ -43,7 +49,10 @@ link2 = env.Command(soname2, shared,
 link3 = env.Command(soname3, soname2,
                    'ln -sf %s %s' % (soname2, soname3), chdir=1)
 
-targets = [ static, shared, link2, link3 ]
+if sys.platform == 'darwin':
+    targets = [ static ]
+else:
+    targets = [ static, shared, link2, link3 ]
 
 prefix = env['PREFIX']
 install = env.Install(prefix + '/lib', targets)
