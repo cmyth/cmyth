@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2009, Jon Gettler
+ *  Copyright (C) 2009-2010, Jon Gettler
  *  http://www.mvpmc.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -69,6 +69,7 @@ get_recordings(int level)
 		char *title;
 		char *subtitle=NULL, *channel = NULL;
 		char *description=NULL, *category=NULL, *recgroup=NULL;
+		char *pathname=NULL;
 		cmyth_proginfo_t prog;
 
 		prog = cmyth_proglist_get_item(episodes, i);
@@ -84,6 +85,10 @@ get_recordings(int level)
 			description = cmyth_proginfo_description(prog);
 			category = cmyth_proginfo_category(prog);
 			recgroup = cmyth_proginfo_recgroup(prog);
+		}
+
+		if (level > 4) {
+			pathname = cmyth_proginfo_pathname(prog);
 		}
 
 		if (channel) {
@@ -104,6 +109,9 @@ get_recordings(int level)
 		if (recgroup) {
 			printf("\tRecording Group: %s\n", recgroup);
 		}
+		if (pathname) {
+			printf("\tPathname:        %s\n", pathname);
+		}
 
 
 		printf("\n");
@@ -114,6 +122,7 @@ get_recordings(int level)
 		ref_release(description);
 		ref_release(category);
 		ref_release(recgroup);
+		ref_release(pathname);
 
 		ref_release(prog);
 	}
