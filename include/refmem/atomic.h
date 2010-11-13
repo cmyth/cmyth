@@ -24,6 +24,14 @@
 #include <atomic.h>
 #endif
 
+#if defined(__APPLE__)
+#include <libkern/OSAtomic.h>
+
+typedef	volatile int32_t mvp_atomic_t;
+
+#define __mvp_atomic_increment(x)	OSAtomicIncrement32(x)
+#define __mvp_atomic_decrement(x)	OSAtomicDecrement32(x)
+#else
 typedef	volatile unsigned int mvp_atomic_t;
 
 /**
@@ -44,7 +52,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		: "cc", "memory"
 		);
 #elif defined __i386__ || defined __x86_64__
-	asm volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
+	__asm__ volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
 		      : "=a" (__val)
 		      : "0" (1), "m" (*valp), "d" (valp)
 		      : "memory");
@@ -106,7 +114,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		: "cc", "memory"
 		);
 #elif defined __i386__ || defined __x86_64__
-	asm volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
+	__asm__ volatile (".byte 0xf0, 0x0f, 0xc1, 0x02" /*lock; xaddl %eax, (%edx) */
 		      : "=a" (__val)
 		      : "0" (-1), "m" (*valp), "d" (valp)
 		      : "memory");
@@ -161,6 +169,8 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 #endif
 	return __val;
 }
+#endif
+
 #define mvp_atomic_inc __mvp_atomic_inc
 static inline int mvp_atomic_inc(mvp_atomic_t *a) {
 	return __mvp_atomic_increment(a);
