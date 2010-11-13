@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2009, Eric Lund, Jon Gettler
+ *  Copyright (C) 2005-2010, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -40,7 +40,6 @@
  */
 #include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
 #include <refmem/refmem.h>
 #include <refmem/atomic.h>
@@ -138,7 +137,7 @@ ref_remove(refcounter_t *ref)
 	int bin;
 	refcounter_t *r, *p;
 
-	bin = ((unsigned long)ref >> 2) % REF_ALLOC_BINS;
+	bin = ((uintptr_t)ref >> 2) % REF_ALLOC_BINS;
 
 	r = ref_list[bin];
 	p = NULL;
@@ -162,7 +161,7 @@ ref_add(refcounter_t *ref)
 {
 	int bin;
 
-	bin = ((unsigned long)ref >> 2) % REF_ALLOC_BINS;
+	bin = ((uintptr_t)ref >> 2) % REF_ALLOC_BINS;
 
 	ref->next = ref_list[bin];
 	ref_list[bin] = ref;
@@ -265,7 +264,7 @@ __ref_alloc(size_t len, const char *file, const char *func, int line)
 		ref->file = file;
 		ref->func = func;
 		ref->line = line;
-		guard = (guard_t*)((unsigned long)block +
+		guard = (guard_t*)((uintptr_t)block +
 				   sizeof(refcounter_t) + len);
 		guard_set(guard, GUARD_MAGIC);
 		ref_add(ref);
@@ -430,7 +429,7 @@ ref_hold(void *p)
 	if (p) {
 #ifdef DEBUG
 		assert(ref->magic == ALLOC_MAGIC);
-		guard = (guard_t*)((unsigned long)block +
+		guard = (guard_t*)((uintptr_t)block +
 				   sizeof(refcounter_t) + ref->length);
 		guard_check(guard);
 #endif /* DEBUG */
@@ -474,12 +473,12 @@ ref_release(void *p)
 			   p, ref, ref->refcount, ref->length);
 #ifdef DEBUG
 		assert(ref->magic == ALLOC_MAGIC);
-		guard = (guard_t*)((unsigned long)block +
+		guard = (guard_t*)((uintptr_t)block +
 				   sizeof(refcounter_t) + ref->length);
 		guard_check(guard);
 #endif /* DEBUG */
 
-/* Remove a refcount */
+		/* Remove a refcount */
 		mvp_atomic_dec(&total_refcount);
 
 		if (mvp_atomic_dec_and_test(&ref->refcount)) {

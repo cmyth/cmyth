@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2009, Eric Lund
+ *  Copyright (C) 2004-2010, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -23,8 +23,6 @@
  */
 #include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>

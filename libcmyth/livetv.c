@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006-2009, Sergio Slobodrian
+ *  Copyright (C) 2006-2010, Sergio Slobodrian
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -26,8 +26,6 @@
  */
 #include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
