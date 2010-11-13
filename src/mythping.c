@@ -67,7 +67,7 @@ get_recordings(int level)
 
 	for (i=0; i<count; i++) {
 		char *title;
-		char *subtitle=NULL, *channel;
+		char *subtitle=NULL, *channel = NULL;
 		char *description=NULL, *category=NULL, *recgroup=NULL;
 		cmyth_proginfo_t prog;
 
