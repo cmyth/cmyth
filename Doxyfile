@@ -75,7 +75,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = src include libcmyth librefmem
+INPUT                  = src include include/cmyth include/refmem libcmyth librefmem
 FILE_PATTERNS          = *.h \
                          *.c
 RECURSIVE              = NO
