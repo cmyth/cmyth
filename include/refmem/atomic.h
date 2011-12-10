@@ -68,6 +68,8 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
+#elif defined ANDROID
+	__val = __atomic_inc(valp) + 1;
 #elif defined __arm__
 	int tmp1, tmp2;
 	int inc = 1;
@@ -130,6 +132,8 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
+#elif defined ANDROID
+	__val = __atomic_dec(valp) - 1;
 #elif defined __arm__
 	int tmp1, tmp2;
 	int inc = -1;

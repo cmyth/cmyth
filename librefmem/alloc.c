@@ -53,6 +53,9 @@
 #define ALLOC_MAGIC 0xef37a45d
 #define GUARD_MAGIC 0xe3
 #define GUARD_BYTES 1
+#if defined(ANDROID)
+#include <android/log.h>
+#endif
 #endif /* DEBUG */
 
 static mvp_atomic_t total_refcount=0;
@@ -206,6 +209,21 @@ ref_alloc_show(void)
 		}
 	}
 
+#if defined(ANDROID)
+	{
+		char buf[512];
+
+		snprintf(buf, sizeof(buf),
+			 "refmem allocation count: %d\n", count);
+		__android_log_print(ANDROID_LOG_DEBUG, "refmem", buf);
+		snprintf(buf, sizeof(buf),
+			 "refmem allocation bytes: %d\n", bytes);
+		__android_log_print(ANDROID_LOG_DEBUG, "refmem", buf);
+		snprintf(buf, sizeof(buf),
+			 "refmem unique allocation types: %d\n", types);
+		__android_log_print(ANDROID_LOG_DEBUG, "refmem", buf);
+	}
+#else
 	printf("refmem allocation count: %d\n", count);
 	printf("refmem allocation bytes: %d\n", bytes);
 	printf("refmem unique allocation types: %d\n", types);
@@ -214,6 +232,7 @@ ref_alloc_show(void)
 		       alloc_list[i].file, alloc_list[i].func,
 		       alloc_list[i].line, alloc_list[i].count);
 	}
+#endif
 }
 #else
 void

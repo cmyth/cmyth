@@ -8,6 +8,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#if defined ANDROID
+#include <android/log.h>
+#endif
+
 typedef struct {
 	char *name;
 	int  cur_level;
@@ -52,8 +56,15 @@ __cmyth_dbg(cmyth_debug_ctx_t *ctx, int level, char *fmt, va_list ap)
 	}
 	if ((ctx->selector && ctx->selector(level, ctx->cur_level)) ||
 	    (!ctx->selector && (level < ctx->cur_level))) {
+#if defined ANDROID
+		char buf[512];
+		snprintf(buf, sizeof(buf), "(%s) ", ctx->name);
+		vsnprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), fmt, ap);
+		__android_log_print(ANDROID_LOG_INFO, "cmyth_dbg", buf);
+#else
 		fprintf(stderr, "(%s)", ctx->name);
 		vfprintf(stderr, fmt, ap);
+#endif
 	}
 }
 
