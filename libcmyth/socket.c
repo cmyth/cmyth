@@ -456,6 +456,8 @@ cmyth_rcv_ulong(cmyth_conn_t conn, int *err, unsigned long *buf,
 	int consumed;
 	int tmp;
 
+	*buf = 0;
+
 	if (!err) {
 		err = &tmp;
 	}
@@ -935,7 +937,7 @@ cmyth_rcv_long_long(cmyth_conn_t conn, int *err, long long *buf, int count)
 int
 cmyth_rcv_ubyte(cmyth_conn_t conn, int *err, unsigned char *buf, int count)
 {
-	unsigned long val = *buf;
+	unsigned long val;
 	int consumed;
 	int tmp;
 
@@ -1001,7 +1003,7 @@ cmyth_rcv_ubyte(cmyth_conn_t conn, int *err, unsigned char *buf, int count)
 int
 cmyth_rcv_ushort(cmyth_conn_t conn, int *err, unsigned short *buf, int count)
 {
-	unsigned long val = *buf;
+	unsigned long val;
 	int consumed;
 	int tmp;
 
@@ -1071,6 +1073,8 @@ cmyth_rcv_ulong_long(cmyth_conn_t conn, int *err,
 	unsigned long hi, lo;
 	int consumed;
 	int tmp;
+
+	*buf = 0;
 
 	if (!err) {
 		err = &tmp;
