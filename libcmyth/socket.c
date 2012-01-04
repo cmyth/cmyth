@@ -300,7 +300,14 @@ cmyth_rcv_string(cmyth_conn_t conn, int *err, char *buf, int buflen, int count)
 		err = &tmp;
 	}
 
-	if (count <= 0) {
+	if (count < 0) {
+		/*
+		 * Strings are terminated by either the next separator or the end of the payload. If
+		 * the last string requested in the payload is empty the count will be zero. In this case
+		 * we should return an empty string rather than an error.
+		 *
+		 * http://www.mythtv.org/wiki/Myth_Protocol#Packet_Data_Format
+		 */
 		*err = EINVAL;
 		return 0;
 	}
