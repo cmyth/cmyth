@@ -501,7 +501,7 @@ cmyth_rcv_ulong(cmyth_conn_t conn, int *err, unsigned long *buf,
  *
  * Description
  *
- * Receive a long long (signed 64 bit) integer token from a list of
+ * Receive a long (signed 32 bit) integer token from a list of
  * tokens in a MythTV Protocol message.  Tokens in MythTV Protocol
  * messages are separated by the string: []:[] or terminated by
  * running out of message.  Up to 'count' Bytes will be consumed from
@@ -572,7 +572,7 @@ cmyth_rcv_long(cmyth_conn_t conn, int *err, long *buf, int count)
 		 */
 		if (val > limit) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
-				  "%s: long long out of range: '%s'\n",
+				  "%s: long out of range: '%s'\n",
 				  __FUNCTION__, num);
 			*err = ERANGE;
 			return consumed;
@@ -829,7 +829,7 @@ cmyth_rcv_short(cmyth_conn_t conn, int *err, short *buf, int count)
  *
  * Description
  *
- * Receive a long (signed 32 bit) integer token from a list of tokens
+ * Receive a long long (signed 64 bit) integer token from a list of tokens
  * in a MythTV Protocol message.  Tokens in MythTV Protocol messages
  * are separated by the string: []:[] or terminated by running out of
  * message.  Up to 'count' Bytes will be consumed from the socket
@@ -1165,7 +1165,7 @@ cmyth_rcv_timestamp(cmyth_conn_t conn, int *err, cmyth_timestamp_t *ts,
                 return consumed;
 
 	if (strlen(tbuf) == 0)
-       		return consumed;
+		return consumed;
 
 	if (*ts)
 		ref_release(*ts);
@@ -1366,7 +1366,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	tmp_str[sizeof(tmp_str) - 1] = '\0';
 
 	buf->proginfo_version = conn->conn_version;
-	cmyth_dbg(CMYTH_DBG_INFO, "%s: VERSION IS %ld\n",
+	cmyth_dbg(CMYTH_DBG_DEBUG, "%s: VERSION IS %ld\n",
 		  __FUNCTION__, buf->proginfo_version);
 	/*
 	 * Get proginfo_title (string)
@@ -1484,7 +1484,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		goto fail;
 	}
 	/* FIXME: doesn't seem to match the dump? */
-	cmyth_dbg(CMYTH_DBG_INFO, "%s: GOT TO ICON/NAME\n", __FUNCTION__);
+	cmyth_dbg(CMYTH_DBG_DEBUG, "%s: GOT TO ICON/NAME\n", __FUNCTION__);
 	if (buf->proginfo_chanicon)
 		ref_release(buf->proginfo_chanicon);
 	if (buf->proginfo_channame)
@@ -1534,7 +1534,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	/*
 	 * Get proginfo_start_ts (timestamp)
 	 */
-	cmyth_dbg(CMYTH_DBG_INFO, "%s: GOT TO START_TS\n", __FUNCTION__);
+	cmyth_dbg(CMYTH_DBG_DEBUG, "%s: GOT TO START_TS\n", __FUNCTION__);
 	if (buf->proginfo_version >= 14) {
 		consumed = cmyth_rcv_datetime(conn, err,
 					      &(buf->proginfo_start_ts),
@@ -1555,7 +1555,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	/*
 	 * Get proginfo_end_ts (timestamp)
 	 */
-	cmyth_dbg(CMYTH_DBG_INFO, "%s: GOT TO END_TS\n", __FUNCTION__);
+	cmyth_dbg(CMYTH_DBG_DEBUG, "%s: GOT TO END_TS\n", __FUNCTION__);
 	if (buf->proginfo_version >= 14) {
 		consumed = cmyth_rcv_datetime(conn, err,
 					      &(buf->proginfo_end_ts), count);
