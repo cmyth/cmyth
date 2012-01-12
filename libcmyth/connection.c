@@ -497,14 +497,14 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 			  __FUNCTION__, ann_size);
 		goto shut;
 	}
-       if ( control->conn_version >=44) {
-               sprintf(announcement, "ANN FileTransfer %s []:[]%s[]:[]",
-                       my_hostname, prog->proginfo_pathname);
-       }
-       else {
-               sprintf(announcement, "ANN FileTransfer %s[]:[]%s",
-                       my_hostname, prog->proginfo_pathname);
-       }
+	if (control->conn_version >= 44) {
+		sprintf(announcement, "ANN FileTransfer %s[]:[]%s[]:[]",
+			  my_hostname, prog->proginfo_pathname);
+	}
+	else {
+		sprintf(announcement, "ANN FileTransfer %s[]:[]%s",
+			  my_hostname, prog->proginfo_pathname);
+	}
 
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
