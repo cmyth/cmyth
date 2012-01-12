@@ -39,6 +39,18 @@ static char * cmyth_conn_get_setting_unlocked(cmyth_conn_t conn, const char* hos
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+typedef struct {
+	int version;
+	char token[9]; // 8 characters + the terminating NULL character
+} myth_protomap_t;
+
+static myth_protomap_t protomap[] = {
+	{62, "78B5631E"},
+	{63, "3875641D"},
+	{64, "8675309J"},
+	{0, 0}
+};
+
 /*
  * cmyth_conn_destroy(cmyth_conn_t conn)
  * 
@@ -313,7 +325,27 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 	if (attempt == 0)
 		tmp_ver = conn->conn_version;
 	conn->conn_version = tmp_ver;
-	sprintf(announcement, "MYTH_PROTO_VERSION %ld", conn->conn_version);
+
+	/*
+	 * Myth 0.23.1 (Myth 0.23 + fixes) introduced an out of sequence protocol version number (23056)
+	 * due to the next protocol version number having already been bumped in trunk.
+	 *
+	 * http://www.mythtv.org/wiki/Myth_Protocol
+	 */
+	if (tmp_ver >= 62 && tmp_ver != 23056) { // Treat protocol version number 23056 the same as protocol 56
+		myth_protomap_t *map = protomap;
+		while (map->version != 0 && map->version != tmp_ver)
+			map++;
+		if (map->version == 0) {
+			cmyth_dbg(CMYTH_DBG_ERROR,
+				  "%s: failed to connect with any version\n",
+				  __FUNCTION__);
+			goto shut;
+		}
+		sprintf(announcement, "MYTH_PROTO_VERSION %ld %s", conn->conn_version, map->token);
+	} else {
+		sprintf(announcement, "MYTH_PROTO_VERSION %ld", conn->conn_version);
+	}
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_send_message('%s') failed\n",
@@ -355,6 +387,19 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 			  __FUNCTION__);
 		goto shut;
 	}
+
+	/*
+	 * All of the downstream code in libcmyth assumes a monotonically increasing version number.
+	 * This was not the case for Myth 0.23.1 (0.23 + fixes) where protocol version number 23056
+	 * was used since 57 had already been used in trunk.
+	 *
+	 * Convert from protocol version number 23056 to version number 56 so subsequent code within
+	 * libcmyth uses the same logic for the 23056 protocol as would be used for protocol version 56.
+	 */
+	if (conn->conn_version == 23056) {
+		conn->conn_version = 56;
+	}
+
 	return conn;
 
     shut:
