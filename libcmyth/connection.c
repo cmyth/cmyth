@@ -35,7 +35,21 @@
 #include <signal.h>
 #include <cmyth_local.h>
 
+static char * cmyth_conn_get_setting_unlocked(cmyth_conn_t conn, const char* hostname, const char* setting);
+
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+typedef struct {
+	int version;
+	char token[9]; // 8 characters + the terminating NULL character
+} myth_protomap_t;
+
+static myth_protomap_t protomap[] = {
+	{62, "78B5631E"},
+	{63, "3875641D"},
+	{64, "8675309J"},
+	{0, 0}
+};
 
 /*
  * cmyth_conn_destroy(cmyth_conn_t conn)
@@ -311,7 +325,27 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 	if (attempt == 0)
 		tmp_ver = conn->conn_version;
 	conn->conn_version = tmp_ver;
-	sprintf(announcement, "MYTH_PROTO_VERSION %ld", conn->conn_version);
+
+	/*
+	 * Myth 0.23.1 (Myth 0.23 + fixes) introduced an out of sequence protocol version number (23056)
+	 * due to the next protocol version number having already been bumped in trunk.
+	 *
+	 * http://www.mythtv.org/wiki/Myth_Protocol
+	 */
+	if (tmp_ver >= 62 && tmp_ver != 23056) { // Treat protocol version number 23056 the same as protocol 56
+		myth_protomap_t *map = protomap;
+		while (map->version != 0 && map->version != tmp_ver)
+			map++;
+		if (map->version == 0) {
+			cmyth_dbg(CMYTH_DBG_ERROR,
+				  "%s: failed to connect with any version\n",
+				  __FUNCTION__);
+			goto shut;
+		}
+		sprintf(announcement, "MYTH_PROTO_VERSION %ld %s", conn->conn_version, map->token);
+	} else {
+		sprintf(announcement, "MYTH_PROTO_VERSION %ld", conn->conn_version);
+	}
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_send_message('%s') failed\n",
@@ -353,6 +387,19 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 			  __FUNCTION__);
 		goto shut;
 	}
+
+	/*
+	 * All of the downstream code in libcmyth assumes a monotonically increasing version number.
+	 * This was not the case for Myth 0.23.1 (0.23 + fixes) where protocol version number 23056
+	 * was used since 57 had already been used in trunk.
+	 *
+	 * Convert from protocol version number 23056 to version number 56 so subsequent code within
+	 * libcmyth uses the same logic for the 23056 protocol as would be used for protocol version 56.
+	 */
+	if (conn->conn_version == 23056) {
+		conn->conn_version = 56;
+	}
+
 	return conn;
 
     shut:
@@ -434,6 +481,7 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 {
 	cmyth_conn_t conn = NULL;
 	char *announcement = NULL;
+	char *myth_host = NULL;
 	char reply[16];
 	int err = 0;
 	int count = 0;
@@ -463,7 +511,18 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 	}
 	cmyth_dbg(CMYTH_DBG_PROTO, "%s: connecting data connection\n",
 		  __FUNCTION__);
-	conn = cmyth_connect(prog->proginfo_host, prog->proginfo_port,
+	if (control->conn_version >= 17) {
+		myth_host = cmyth_conn_get_setting_unlocked(control, prog->proginfo_host,
+		                                   "BackendServerIP");
+	}
+	if (!myth_host) {
+		cmyth_dbg(CMYTH_DBG_PROTO,
+		          "%s: BackendServerIP setting not found. Using proginfo_host: %s\n",
+		          __FUNCTION__, prog->proginfo_host);
+		myth_host = ref_alloc(strlen(prog->proginfo_host) + 1);
+		strcpy(myth_host, prog->proginfo_host);
+	}
+	conn = cmyth_connect(myth_host, prog->proginfo_port,
 			     buflen, tcp_rcvbuf);
 	cmyth_dbg(CMYTH_DBG_PROTO,
 		  "%s: done connecting data connection, conn = %d\n",
@@ -472,7 +531,7 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_connect(%s, %d, %d) failed\n",
 			  __FUNCTION__,
-			  prog->proginfo_host, prog->proginfo_port, buflen);
+			  myth_host, prog->proginfo_port, buflen);
 		goto shut;
 	}
 	ann_size += strlen(prog->proginfo_pathname) + strlen(my_hostname);
@@ -483,14 +542,14 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 			  __FUNCTION__, ann_size);
 		goto shut;
 	}
-       if ( control->conn_version >=44) {
-               sprintf(announcement, "ANN FileTransfer %s []:[]%s[]:[]",
-                       my_hostname, prog->proginfo_pathname);
-       }
-       else {
-               sprintf(announcement, "ANN FileTransfer %s[]:[]%s",
-                       my_hostname, prog->proginfo_pathname);
-       }
+	if (control->conn_version >= 44) {
+		sprintf(announcement, "ANN FileTransfer %s[]:[]%s[]:[]",
+			  my_hostname, prog->proginfo_pathname);
+	}
+	else {
+		sprintf(announcement, "ANN FileTransfer %s[]:[]%s",
+			  my_hostname, prog->proginfo_pathname);
+	}
 
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -538,6 +597,7 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 	count -= r;
 	free(announcement);
 	ref_release(conn);
+	ref_release(myth_host);
 	return ret;
 
     shut:
@@ -546,6 +606,7 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 	}
 	ref_release(ret);
 	ref_release(conn);
+	ref_release(myth_host);
 	return NULL;
 }
 
@@ -1093,4 +1154,75 @@ cmyth_conn_get_free_recorder_count(cmyth_conn_t conn)
 	pthread_mutex_unlock(&mutex);
 
 	return ret;
+}
+
+static char *
+cmyth_conn_get_setting_unlocked(cmyth_conn_t conn, const char* hostname, const char* setting)
+{
+	char msg[256];
+	int count, err;
+	char* result = NULL;
+
+	if(conn->conn_version < 17) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: protocol version doesn't support QUERY_SETTING\n",
+			  __FUNCTION__);
+		return NULL;
+	}
+
+	if (!conn) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
+			  __FUNCTION__);
+		return NULL;
+	}
+
+	snprintf(msg, sizeof(msg), "QUERY_SETTING %s %s", hostname, setting);
+	if ((err = cmyth_send_message(conn, msg)) < 0) {
+		cmyth_dbg(CMYTH_DBG_ERROR,
+			  "%s: cmyth_send_message() failed (%d)\n",
+			  __FUNCTION__, err);
+		goto err;
+	}
+
+	if ((count=cmyth_rcv_length(conn)) < 0) {
+		cmyth_dbg(CMYTH_DBG_ERROR,
+			  "%s: cmyth_rcv_length() failed (%d)\n",
+			  __FUNCTION__, count);
+		goto err;
+	}
+
+	result = ref_alloc(count+1);
+	count -= cmyth_rcv_string(conn, &err,
+				    result, count, count);
+	if (err < 0) {
+		cmyth_dbg(CMYTH_DBG_ERROR,
+			  "%s: cmyth_rcv_string() failed (%d)\n",
+			  __FUNCTION__, err);
+		goto err;
+	}
+
+	while(count > 0 && !err) {
+		char buffer[100];
+		count -= cmyth_rcv_string(conn, &err, buffer, sizeof(buffer)-1, count);
+		buffer[sizeof(buffer)-1] = 0;
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: odd left over data %s\n", __FUNCTION__, buffer);
+	}
+
+	return result;
+err:
+	if(result)
+		ref_release(result);
+
+	return NULL;
+}
+
+char *
+cmyth_conn_get_setting(cmyth_conn_t conn, const char* hostname, const char* setting)
+{
+	char* result = NULL;
+
+	pthread_mutex_lock(&mutex);
+	result = cmyth_conn_get_setting_unlocked(conn, hostname, setting);
+	pthread_mutex_unlock(&mutex);
+
+	return result;
 }
