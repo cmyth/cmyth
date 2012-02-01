@@ -145,6 +145,9 @@ cmyth_proginfo_destroy(cmyth_proginfo_t p)
 	if (p->proginfo_storagegroup) {
 		ref_release(p->proginfo_storagegroup);
 	}
+	if (p->proginfo_recpriority_2) {
+		ref_release(p->proginfo_recpriority_2);
+	}
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 }
 
