@@ -28,6 +28,9 @@
  */
 #include <sys/types.h>
 #include <stdlib.h>
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -248,7 +251,7 @@ cmyth_proginfo_create(void)
 	ret->proginfo_programid = NULL;
 	ret->proginfo_stars = NULL;
 	ret->proginfo_version = 12;
-        ret->proginfo_hasairdate = 0;
+	ret->proginfo_hasairdate = 0;
 	ret->proginfo_playgroup = NULL;
 	ret->proginfo_storagegroup = NULL;
 	ret->proginfo_recpriority_2 = NULL;
@@ -295,8 +298,7 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_rec_start_ts = ref_hold(p->proginfo_rec_start_ts);
 	ret->proginfo_rec_end_ts = ref_hold(p->proginfo_rec_end_ts);
 	ret->proginfo_lastmodified = ref_hold(p->proginfo_lastmodified);
-	ret->proginfo_originalairdate =
-		ref_hold(p->proginfo_originalairdate);
+	ret->proginfo_originalairdate = ref_hold(p->proginfo_originalairdate);
 	ret->proginfo_title = ref_hold(p->proginfo_title);
 	ret->proginfo_subtitle = ref_hold(p->proginfo_subtitle);
 	ret->proginfo_description = ref_hold(p->proginfo_description);
@@ -330,13 +332,12 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_rec_profile = ref_hold(p->proginfo_rec_profile);
 	ret->proginfo_recgroup = ref_hold(p->proginfo_recgroup);
 	ret->proginfo_chancommfree = ref_hold(p->proginfo_chancommfree);
-	ret->proginfo_chan_output_filters =
-		ref_hold(p->proginfo_chan_output_filters);
+	ret->proginfo_chan_output_filters = ref_hold(p->proginfo_chan_output_filters);
 	ret->proginfo_seriesid = ref_hold(p->proginfo_seriesid);
 	ret->proginfo_programid = ref_hold(p->proginfo_programid);
 	ret->proginfo_stars = ref_hold(p->proginfo_stars);
 	ret->proginfo_version = p->proginfo_version;
-        ret->proginfo_hasairdate = p->proginfo_hasairdate;
+	ret->proginfo_hasairdate = p->proginfo_hasairdate;
 	ret->proginfo_playgroup = ref_hold(p->proginfo_playgroup);
 	ret->proginfo_storagegroup = ref_hold(p->proginfo_storagegroup);
 	ret->proginfo_recpriority_2 = ref_hold(p->proginfo_recpriority_2);
@@ -410,10 +411,10 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	char rec_end_ts[CMYTH_TIMESTAMP_LEN + 1];
 	char originalairdate[CMYTH_TIMESTAMP_LEN + 1];
 	char lastmodified[CMYTH_TIMESTAMP_LEN + 1];
-	int err;
-	int count;
-	long r;
-	int ret;
+	int err = 0;
+	int count = 0;
+	long r = 0;
+	int ret = 0;
 
 	if (!prog) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no program info\n",
@@ -463,7 +464,7 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	    cmyth_timestamp_to_isostring(originalairdate,
 				 prog->proginfo_originalairdate);
 	}
-	
+
 	if(control->conn_version < 12)
 	{
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -1399,7 +1400,7 @@ cmyth_proginfo_fill(cmyth_conn_t control, cmyth_proginfo_t prog)
 	int err = 0;
 	int count;
 	int ret;
-	long long length = prog->proginfo_Length;
+	long long length = 0;
 
 	if (!control) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
