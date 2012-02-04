@@ -25,19 +25,56 @@
 #ifndef __CMYTH_LOCAL_H
 #define __CMYTH_LOCAL_H
 
-#include <unistd.h>
+#include <stdio.h>
+#include <malloc.h>
 #include <refmem/refmem.h>
 #include <cmyth/cmyth.h>
 #include <time.h>
-#include <pthread.h>
+#include <stdint.h>
 #if defined(HAS_MYSQL)
 #include <mysql/mysql.h>
 #endif
 
-#define mutex __cmyth_mutex
-#include <stdint.h>
+#ifdef _MSC_VER
+#pragma warning(disable:4267)
+#define pthread_mutex_lock(a)
+#define pthread_mutex_unlock(a)
+#define PTHREAD_MUTEX_INITIALIZER NULL;
+typedef void* pthread_mutex_t;
 extern pthread_mutex_t mutex;
+#define mutex __cmyth_mutex
+#define ECANCELED -1
+#define ETIMEDOUT -1
+#define SHUT_RDWR SD_BOTH
+typedef SOCKET cmyth_socket_t;
+typedef int socklen_t;
+#define snprintf _snprintf
+#define sleep(a) Sleep(a*1000)
+#define usleep(a) Sleep(a/1000)
+static inline struct tm* localtime_r (const time_t *clock, struct tm *result) { 
+	struct tm* data;
+  if (!clock || !result) return NULL;
+  data = localtime(clock);
+  if (!data) return NULL;
+	memcpy(result,data,sizeof(*result)); 
+	return result; 
+}
+static inline __int64 atoll(const char* s)
+{
+  __int64 value;
+  if(sscanf(s,"%I64d", &value))
+    return value;
+  else
+    return 0;
+}
 
+#else
+#include <pthread.h>
+#define mutex __cmyth_mutex
+extern pthread_mutex_t mutex;
+#define closesocket(fd) close(fd)
+typedef int cmyth_socket_t;
+#endif
 /*
  * Some useful constants
  */
@@ -52,17 +89,6 @@ extern pthread_mutex_t mutex;
 #define CMYTH_COMMBREAK_END 5
 #define CMYTH_CUTLIST_START 1
 #define CMYTH_CUTLIST_END 0
-
-/*
- * Typedef for fd to allow windows port in xbmc to work
- */
-typedef int cmyth_socket_t;
-
-/*
- * Define closesocket to close on posix operating system
- * windows system need the separate closesocket
- */
-#define closesocket(a) close(a)
 
 /**
  * MythTV backend connection

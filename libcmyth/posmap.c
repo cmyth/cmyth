@@ -25,7 +25,6 @@
  *            be markers inserted by commercial detection.  A position
  *            map collects these in one place.
  */
-#include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <cmyth_local.h>

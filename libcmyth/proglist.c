@@ -23,7 +23,6 @@
  *               and cmyth_proglist_t and between long long and
  *               cmyth_proglist_t.
  */
-#include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>

@@ -26,16 +26,18 @@
  *                owns the tuner and channel information (i.e. program
  *                guide data).
  */
-#include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/time.h>
+#include <time.h>
 #include <cmyth_local.h>
 
-#if 0
+#ifdef _MSC_VER
+static void nullprint(a, ...) { return; }
+#define PRINTF nullprint
+#define TRC  nullprint
+#elif 0
 #define PRINTF(x...) PRINTF(x)
 #define TRC(fmt, args...) PRINTF(fmt, ## args) 
 #else

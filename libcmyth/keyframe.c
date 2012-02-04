@@ -21,7 +21,6 @@
  * keyframe.c - functions to manage key frame structures.  Mostly
  *              just allocating, freeing, and filling them out.
  */
-#include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

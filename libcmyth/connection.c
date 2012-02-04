@@ -23,13 +23,16 @@
  * interacting with those connections.  
  */
 
-#include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
+#ifdef _MSC_VER
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <arpa/inet.h>
+#endif
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
@@ -170,8 +173,10 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	struct sockaddr_in addr;
 	unsigned char *buf = NULL;
 	cmyth_socket_t fd;
+#ifndef _MSC_VER
 	void (*old_sighandler)(int);
 	int old_alarm;
+#endif
 	int temp;
 	socklen_t size;
 
@@ -234,21 +239,27 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 		  (ntohl(addr.sin_addr.s_addr) & 0x0000FF00) >>  8,
 		  (ntohl(addr.sin_addr.s_addr) & 0x000000FF),
 		  fd);
+#ifndef _MSC_VER
 	old_sighandler = signal(SIGALRM, sighandler);
 	old_alarm = alarm(5);
+#endif
 	my_fd = fd;
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: connect failed on port %d to '%s' (%d)\n",
 			  __FUNCTION__, port, server, errno);
 		closesocket(fd);
+#ifndef _MSC_VER
 		signal(SIGALRM, old_sighandler);
 		alarm(old_alarm);
+#endif
 		return NULL;
 	}
 	my_fd = -1;
+#ifndef _MSC_VER
 	signal(SIGALRM, old_sighandler);
 	alarm(old_alarm);
+#endif
 
 	if ((my_hostname[0] == '\0') &&
 	    (gethostname(my_hostname, sizeof(my_hostname)) < 0)) {

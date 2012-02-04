@@ -17,18 +17,19 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/time.h>
 #include <mysql/mysql.h>
 #include <cmyth_local.h>
 #include <safe_string.h>
 
-#if 0
+#ifdef _MSC_VER
+static void nullprint(a, ...) { return; }
+#define PRINTF nullprint
+#define TRC  nullprint
+#elif 0
 #define PRINTF(x...) PRINTF(x)
 #define TRC(fmt, args...) PRINTF(fmt, ## args) 
 #else

@@ -21,11 +21,9 @@
  * socket.c - functions to handle low level socket interactions with a
  *            MythTV frontend.  
  */
-#include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
 #include <cmyth_local.h>
 

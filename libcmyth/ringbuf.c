@@ -24,10 +24,7 @@
  *                This allows the watcher to do things like pause, rewind
  *                and so forth on live-tv.
  */
-#include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
