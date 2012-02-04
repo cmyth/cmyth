@@ -28,6 +28,9 @@
  */
 #include <sys/types.h>
 #include <stdlib.h>
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -1397,7 +1400,7 @@ cmyth_proginfo_fill(cmyth_conn_t control, cmyth_proginfo_t prog)
 	int err = 0;
 	int count;
 	int ret;
-	long long length = prog->proginfo_Length;
+	long long length = 0;
 
 	if (!control) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
