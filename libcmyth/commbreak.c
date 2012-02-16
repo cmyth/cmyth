@@ -197,7 +197,6 @@ int cmyth_rcv_commbreaklist(cmyth_conn_t conn, int *err,
 	unsigned short type;
 	unsigned short start_type;
 	int i;
-	int j;
 
 	if (count <= 0) {
 		*err = EINVAL;

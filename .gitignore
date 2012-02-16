@@ -3,6 +3,7 @@
 *.a
 *.so
 *.so.*
+*.dylib
 *~
 .sconsign*
 *.pyc
@@ -17,4 +18,5 @@ cscope.out
 cscope.po.out
 doc
 cmyth.conf
-cmyth/build
+xcode/build
+install

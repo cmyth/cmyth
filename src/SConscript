@@ -1,23 +1,25 @@
-#!/usr/bin/python
 #
 # cmyth apps
 #
 
 Import('env')
 
+prefix = env['PREFIX']
+
 libs = [ 'cmyth', 'pthread', 'refmem', ]
+targets = [ ]
 
-if not env.GetOption('clean'):
-    conf = Configure(env)
-    if conf.CheckLib('mysqlclient'):
-        libs += [ 'mysqlclient' ]
-    env = conf.Finish()
-
-mythfuse = env.Program('mythfuse', 'mythfuse.c',
-                       CCFLAGS = ' -D_FILE_OFFSET_BITS=64',
-                       CPPPATH = [ '../include' ],
-                       LIBS = libs + [ 'fuse' ],
-                       LIBPATH = [ '../libcmyth', '../librefmem' ])
+conf = Configure(env)
+if conf.CheckLib('mysqlclient'):
+    libs += [ 'mysqlclient' ]
+if conf.CheckLib('fuse'):
+    mythfuse = env.Program('mythfuse', 'mythfuse.c',
+                           CCFLAGS = ' -D_FILE_OFFSET_BITS=64',
+                           CPPPATH = [ '../include' ],
+                           LIBS = libs + [ 'fuse' ],
+                           LIBPATH = [ '../libcmyth', '../librefmem' ])
+    targets += [ mythfuse ]
+env = conf.Finish()
 
 mythping = env.Program('mythping', 'mythping.c',
                        CPPPATH = [ '../include' ],
@@ -29,17 +31,8 @@ mythcat = env.Program('mythcat', 'mythcat.c',
                       LIBS = libs,
                       LIBPATH = [ '../libcmyth', '../librefmem' ])
 
-targets = [ mythping, mythcat ]
+targets += [ mythping, mythcat ]
 
-if not env.GetOption('clean'):
-    conf = Configure(env)
-    if conf.CheckLib('fuse'):
-        targets += [ mythfuse ]
-    env = conf.Finish()
-else:
-    targets += [ mythfuse ]
-
-prefix = env['PREFIX']
 env.Install(prefix + '/bin', targets)
 
 Return('targets')
