@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2009, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2012, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -454,30 +454,9 @@ cmyth_conn_connect_event(char *server, unsigned short port, unsigned buflen,
 	return ret;
 }
 
-/*
- * cmyth_conn_connect_file(char *server, unsigned short port, unsigned buflen
- *                         cmyth_proginfo_t prog)
- *
- * Scope: PUBLIC
- *
- * Description:
- *
- * Create a file structure containing a data connection for use
- * transfering a file within the MythTV protocol.  Return a pointer to
- * the newly created file structure.  The connection in the file
- * structure is returned held as is the file structure itself.  The
- * connection will be released when the file structure is released.
- * The file structure can be released using ref_release().
- *
- * Return Value:
- *
- * Success: Non-NULL cmyth_file_t (this is a pointer type)
- *
- * Failure: NULL cmyth_file_t
- */
-cmyth_file_t
-cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
-			unsigned buflen, int tcp_rcvbuf)
+static cmyth_file_t
+cmyth_conn_connect_pathname(cmyth_proginfo_t prog,  cmyth_conn_t control,
+			    unsigned buflen, int tcp_rcvbuf, char *pathname)
 {
 	cmyth_conn_t conn = NULL;
 	char *announcement = NULL;
@@ -498,7 +477,7 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 			  __FUNCTION__);
 		goto shut;
 	}
-	if (!prog->proginfo_pathname) {
+	if (!pathname) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: prog has no pathname in it\n",
 			  __FUNCTION__);
 		goto shut;
@@ -538,7 +517,7 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 			  myth_host, prog->proginfo_port, buflen);
 		goto shut;
 	}
-	ann_size += strlen(prog->proginfo_pathname) + strlen(my_hostname);
+	ann_size += strlen(pathname) + strlen(my_hostname);
 	announcement = malloc(ann_size);
 	if (!announcement) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -548,11 +527,11 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 	}
 	if (control->conn_version >= 44) {
 		sprintf(announcement, "ANN FileTransfer %s[]:[]%s[]:[]",
-			  my_hostname, prog->proginfo_pathname);
+			  my_hostname, pathname);
 	}
 	else {
 		sprintf(announcement, "ANN FileTransfer %s[]:[]%s",
-			  my_hostname, prog->proginfo_pathname);
+			  my_hostname, pathname);
 	}
 
 	if (cmyth_send_message(conn, announcement) < 0) {
@@ -612,6 +591,78 @@ cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
 	ref_release(conn);
 	ref_release(myth_host);
 	return NULL;
+}
+
+/*
+ * cmyth_conn_connect_file(char *server, unsigned short port, unsigned buflen
+ *                         cmyth_proginfo_t prog)
+ *
+ * Scope: PUBLIC
+ *
+ * Description:
+ *
+ * Create a file structure containing a data connection for use
+ * transfering a file within the MythTV protocol.  Return a pointer to
+ * the newly created file structure.  The connection in the file
+ * structure is returned held as is the file structure itself.  The
+ * connection will be released when the file structure is released.
+ * The file structure can be released using ref_release().
+ *
+ * Return Value:
+ *
+ * Success: Non-NULL cmyth_file_t (this is a pointer type)
+ *
+ * Failure: NULL cmyth_file_t
+ */
+cmyth_file_t
+cmyth_conn_connect_file(cmyth_proginfo_t prog,  cmyth_conn_t control,
+			unsigned buflen, int tcp_rcvbuf)
+{
+	return cmyth_conn_connect_pathname(prog, control, buflen, tcp_rcvbuf,
+					   prog->proginfo_pathname);
+}
+
+/*
+ * cmyth_conn_connect_thumbnail(char *server, unsigned short port,
+ *                              unsigned buflen
+ *                              cmyth_proginfo_t prog)
+ *
+ * Scope: PUBLIC
+ *
+ * Description:
+ *
+ * Create a file structure containing a data connection for use
+ * transfering a thumbnail image within the MythTV protocol.  Return a pointer
+ * to the newly created file structure.  The connection in the file
+ * structure is returned held as is the file structure itself.  The
+ * connection will be released when the file structure is released.
+ * The file structure can be released using ref_release().
+ *
+ * Note that the filesize of the PNG thumbnail is unknown, so clients must
+ * simply read until they run out of data.
+ *
+ * Return Value:
+ *
+ * Success: Non-NULL cmyth_file_t (this is a pointer type)
+ *
+ * Failure: NULL cmyth_file_t
+ */
+cmyth_file_t
+cmyth_conn_connect_thumbnail(cmyth_proginfo_t prog,  cmyth_conn_t control,
+			     unsigned buflen, int tcp_rcvbuf)
+{
+	char pathname[256];
+
+	if (!prog->proginfo_pathname) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: prog has no pathname in it\n",
+			  __FUNCTION__);
+		return NULL;
+	}
+
+	snprintf(pathname, sizeof(pathname), "%s.png", prog->proginfo_pathname);
+
+	return cmyth_conn_connect_pathname(prog, control, buflen, tcp_rcvbuf,
+					   pathname);
 }
 
 /*

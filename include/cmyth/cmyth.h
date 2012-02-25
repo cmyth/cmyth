@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2006, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2012, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -230,7 +230,7 @@ extern cmyth_conn_t cmyth_conn_connect_event(char *server,
 					     unsigned buflen, int tcp_rcvbuf);
 
 /**
- * Create a file connection to a backend.
+ * Create a file connection to a backend for reading a recording.
  * \param prog program handle
  * \param control control handle
  * \param buflen buffer size for the connection to use
@@ -240,6 +240,19 @@ extern cmyth_conn_t cmyth_conn_connect_event(char *server,
 extern cmyth_file_t cmyth_conn_connect_file(cmyth_proginfo_t prog,
 					    cmyth_conn_t control,
 					    unsigned buflen, int tcp_rcvbuf);
+
+/**
+ * Create a file connection to a backend for reading a recording thumbnail.
+ * \param prog program handle
+ * \param control control handle
+ * \param buflen buffer size for the connection to use
+ * \param tcp_rcvbuf if non-zero, the TCP receive buffer size for the socket
+ * \return file handle
+ */
+extern cmyth_file_t cmyth_conn_connect_thumbnail(cmyth_proginfo_t prog,
+						 cmyth_conn_t control,
+						 unsigned buflen,
+						 int tcp_rcvbuf);
 
 /**
  * Create a ring buffer connection to a recorder.

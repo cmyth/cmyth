@@ -15,14 +15,16 @@ branch = 0
 
 src = [ 'alloc.c', 'debug.c' ]
 
-linkflags = env.soname(name, major, minor)
+linkflags = env.soname(name, major, minor, branch)
 
 static = env.StaticLibrary(name, src,
                            LINKFLAGS = linkflags,
+                           LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 shared = env.SharedLibrary(name, src,
                            SHLIBSUFFIX = env.shlibsuffix(major, minor, branch),
                            LINKFLAGS = linkflags,
+                           LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 
 link0 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major, minor)), shared)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010, Jon Gettler
+ *  Copyright (C) 2010-2012, Jon Gettler
  *  http://www.mvpmc.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <limits.h>
 
 #include "cmyth/cmyth.h"
 #include "refmem/refmem.h"
@@ -35,13 +36,16 @@ static int tcp_program = 128*1024;
 
 static struct option opts[] = {
 	{ "help", no_argument, 0, 'h' },
+	{ "thumbnail", no_argument, 0, 't' },
 	{ 0, 0, 0, 0 }
 };
 
 static void
 print_help(char *prog)
 {
-	printf("Usage: %s <backend> <filename>\n", prog);
+	printf("Usage: %s [options] <backend> <filename>\n", prog);
+	printf("\t-h          print this help\n");
+	printf("\t-t          get the recording thumbnail\n");
 }
 
 static int
@@ -103,7 +107,7 @@ write_buffer(int fd, char *buf, int len)
 }
 
 static int
-dump_prog(cmyth_proginfo_t prog)
+dump_prog(cmyth_proginfo_t prog, int thumbnail)
 {
 	cmyth_conn_t c = NULL;
 	cmyth_file_t f = NULL;
@@ -125,16 +129,29 @@ dump_prog(cmyth_proginfo_t prog)
 		return -1;
 	}
 
-	if ((f=cmyth_conn_connect_file(prog, c, MAX_BSIZE,
-				       tcp_program)) == NULL) {
-		error("Could not open file!");
-		return -1;
+	if (thumbnail) {
+		if ((f=cmyth_conn_connect_thumbnail(prog, c, MAX_BSIZE,
+						    tcp_program)) == NULL) {
+			error("Could not open file!");
+			return -1;
+		}
+	} else {
+		if ((f=cmyth_conn_connect_file(prog, c, MAX_BSIZE,
+					       tcp_program)) == NULL) {
+			error("Could not open file!");
+			return -1;
+		}
 	}
 
 	ref_release(host);
 	ref_release(c);
 
-	len = cmyth_proginfo_length(prog);
+	if (thumbnail) {
+		/* The size of the thumbnail image is unknown. */
+		len = INT_MAX;
+	} else {
+		len = cmyth_proginfo_length(prog);
+	}
 
 	fd = fileno(stdout);
 
@@ -165,13 +182,17 @@ dump_prog(cmyth_proginfo_t prog)
 	if (cur == len) {
 		return 0;
 	} else {
-		error("Failed to read file!");
-		return -1;
+		if (thumbnail && (cur > 0)) {
+			return 0;
+		} else {
+			error("Failed to read file!");
+			return -1;
+		}
 	}
 }
 
 static int
-cat_file(char *file)
+cat_file(char *file, int thumbnail)
 {
 	cmyth_proglist_t episodes;
 	int count, i;
@@ -196,12 +217,12 @@ cat_file(char *file)
 
 		if (pathname[0] == '/') {
 			if (strcmp(file, pathname+1) == 0) {
-				rc = dump_prog(prog);
+				rc = dump_prog(prog, thumbnail);
 				break;
 			}
 		} else {
 			if (strcmp(file, pathname) == 0) {
-				rc = dump_prog(prog);
+				rc = dump_prog(prog, thumbnail);
 				break;
 			}
 		}
@@ -224,12 +245,16 @@ main(int argc, char **argv)
 {
 	int c, opt_index;
 	char *server, *file;
+	int thumbnail = 0;
 
-	while ((c=getopt_long(argc, argv, "h", opts, &opt_index)) != -1) {
+	while ((c=getopt_long(argc, argv, "ht", opts, &opt_index)) != -1) {
 		switch (c) {
 		case 'h':
 			print_help(argv[0]);
 			exit(0);
+			break;
+		case 't':
+			thumbnail = 1;
 			break;
 		default:
 			print_help(argv[0]);
@@ -256,7 +281,7 @@ main(int argc, char **argv)
 		return -1;
 	}
 
-	if (cat_file(file) != 0) {
+	if (cat_file(file, thumbnail) != 0) {
 		return -1;
 	}
 
