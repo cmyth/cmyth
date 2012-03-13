@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2009, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2012, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -116,13 +116,6 @@ struct cmyth_chanlist {
 	int chanlist_sort_desc;
 	int chanlist_count;
 	int chanlist_alloc;
-};
-
-/* Sergio: Added to support the tvguide functionality */
-struct cmyth_tvguide_progs {
-	cmyth_program_t * progs;
-	int count;
-	int alloc;
 };
 
 struct cmyth_recorder {

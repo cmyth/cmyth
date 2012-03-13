@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2009, Jon Gettler
+ *  Copyright (C) 2005-2012, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -277,11 +277,11 @@ int cmyth_rcv_commbreaklist(cmyth_conn_t conn, int *err,
 	return total;
 }
 
+#if defined(HAS_MYSQL)
 cmyth_commbreaklist_t
 cmyth_mysql_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_proginfo_t prog)
 {
 	cmyth_commbreaklist_t breaklist = cmyth_commbreaklist_create();
-#if defined(HAS_MYSQL)
 	char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
 	int r;
 
@@ -302,6 +302,6 @@ cmyth_mysql_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_prog
 	}
 	out:
 	pthread_mutex_unlock(&mutex);
-#endif /* HAS_MYSQL */
 	return breaklist;
 }
+#endif /* HAS_MYSQL */
