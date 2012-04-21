@@ -10,21 +10,54 @@ import string
 from os import pathsep
 
 def find_binary(self, filename):
-	"""Find a file in the system search path
-	"""
-	path = os.environ['PATH']
-	paths = string.split(path, pathsep)
-	for i in paths:
-		name = os.path.join(i, filename)
-		if os.path.isfile(name):
-			return name
-	return ''
+    """Find a file in the system search path"""
+    path = os.environ['PATH']
+    paths = string.split(path, pathsep)
+    for i in paths:
+        name = os.path.join(i, filename)
+        if os.path.isfile(name):
+            return name
+    return ''
 
 def cmd_not_found(self, arg):
-	"""Abort the build
-	"""
-	print 'Error: %s not found!' % arg
-	env.Exit(1)
+    """Abort the build"""
+    print 'Error: %s not found!' % arg
+    env.Exit(1)
+
+def shlibsuffix(self, major=-1, minor=-1, branch=-1):
+    """Create the proper suffix for the shared library on the current OS."""
+    if major == -1:
+        if sys.platform == 'darwin':
+            return '.dylib'
+        else:
+            return '.so'
+    elif minor == -1:
+        if sys.platform == 'darwin':
+            return '-%d.dylib' % (major)
+        else:
+            return '.so.%d' % (major)
+    elif branch == -1:
+        if sys.platform == 'darwin':
+            return '-%d.%d.dylib' % (major, minor)
+        else:
+            return '.so.%d.%d' % (major, minor)
+    else:
+        if sys.platform == 'darwin':
+            return '-%d.%d.%d.dylib' % (major, minor, branch)
+        else:
+            return '.so.%d.%d.%d' % (major, minor, branch)
+
+def soname(self, name, major=0, minor=0, branch=0):
+    """Create the linker shared object argument for gcc for this OS."""
+    if sys.platform == 'darwin':
+        return '-Wl,-headerpad_max_install_names,'\
+               '-undefined,dynamic_lookup,-compatibility_version,%d.%d.%d,'\
+               '-current_version,%d.%d.%d,-install_name,lib%s%s' % \
+               (major, minor, branch,
+                major, minor, branch,
+                name, self.shlibsuffix(major, minor, branch))
+    else:
+        return '-Wl,-soname,lib%s.so.%d.%d.%d' % (name, major, minor, branch)
 
 #
 # Initialize the build environment
@@ -33,6 +66,8 @@ env = Environment()
 
 env.AddMethod(cmd_not_found, 'cmd_not_found')
 env.AddMethod(find_binary, 'find_binary')
+env.AddMethod(shlibsuffix, 'shlibsuffix')
+env.AddMethod(soname, 'soname')
 
 vars = Variables('cmyth.conf')
 vars.Add('CC', '', 'gcc')
@@ -40,26 +75,32 @@ vars.Add('LD', '', 'ld')
 
 vars.Update(env)
 
-if os.environ.has_key('CROSS'):
-	cross = os.environ['CROSS']
-	env.Append(CROSS = cross)
-	env.Replace(CC = cross + 'gcc')
-	env.Replace(LD = cross + 'ld')
+if 'CROSS' in os.environ:
+    cross = os.environ['CROSS']
+    env.Append(CROSS = cross)
+    env.Replace(CC = cross + 'gcc')
+    env.Replace(LD = cross + 'ld')
 
 env.Append(CFLAGS = '-Werror')
 
 #
+# SCons builders
+#
+builder = Builder(action = "ln -s ${SOURCE.file} ${TARGET.file}", chdir = True)
+env.Append(BUILDERS = {"Symlink" : builder})
+
+#
 # Check the command line targets
 #
-build_cscope = 0
-build_doxygen = 0
+build_cscope = False
+build_doxygen = False
 if 'cscope' in COMMAND_LINE_TARGETS:
-	build_cscope = 2
+    build_cscope = True
 if 'doxygen' in COMMAND_LINE_TARGETS:
-	build_doxygen = 2
+    build_doxygen = True
 if 'all' in COMMAND_LINE_TARGETS:
-	build_doxygen = 1
-	build_cscope = 1
+    build_doxygen = True
+    build_cscope = True
 
 #
 # Check for binaries that might be required
@@ -70,7 +111,7 @@ dox = env.find_binary('doxygen')
 #
 # Find the install prefix
 #
-if os.environ.has_key('PREFIX'):
+if 'PREFIX' in os.environ:
     prefix = os.environ['PREFIX']
 else:
     prefix = '/usr/local'
@@ -101,35 +142,40 @@ all = targets
 #
 # cscope target
 #
-if build_cscope > 0 and cs != '':
-	cscope = env.Command([ 'cscope.out', 'cscope.files',
-			       'cscope.in.out', 'cscope.po.out' ],
-			     [ Glob('src/*.[ch]'),
-			       Glob('lib*/*.[ch]'),
-			       Glob('include/*.h'),
-			       Glob('include/*/*.h') ],
-			     [ 'find . -name \*.c -or -name \*.h > cscope.files',
-			       '%s -b -q -k' % cs ])
-	env.Alias('cscope', [cscope])
-	all += [cscope]
-elif build_cscope > 1:
-	env.cmd_not_found('cscope')
+if build_cscope:
+    if cs != '':
+        cscope = env.Command([ 'cscope.out', 'cscope.files',
+                               'cscope.in.out', 'cscope.po.out' ],
+                               [ Glob('src/*.[ch]'),
+                                 Glob('lib*/*.[ch]'),
+                                 Glob('include/*.h'),
+                                 Glob('include/*/*.h') ],
+			     [ 'find . -name \*.c -or -name \*.h '\
+                               '> cscope.files',
+                               '%s -b -q -k' % cs ])
+        env.Alias('cscope', [cscope])
+        all += [cscope]
+    else:
+        if not env.GetOption('clean'):
+            env.cmd_not_found('cscope')
 
 #
 # doxygen target
 #
-if build_doxygen > 0 and dox != '':
-	doxygen = env.Command([ 'doc' ],
-			      [ 'Doxyfile',
-				Glob('src/*.[ch]'),
-				Glob('lib*/*.[ch]'),
-				Glob('include/*.h'),
-				Glob('include/*/*.h') ],
-                              [ '%s Doxyfile' % dox ])
-	env.Alias('doxygen', [doxygen])
-	all += [doxygen]
-elif build_doxygen > 1:
-	env.cmd_not_found('doxygen')
+if build_doxygen:
+    if dox != '':
+        doxygen = env.Command([ 'doc' ],
+                              [ 'Doxyfile',
+                                Glob('src/*.[ch]'),
+                            Glob('lib*/*.[ch]'),
+                            Glob('include/*.h'),
+                            Glob('include/*/*.h') ],
+            [ '%s Doxyfile' % dox ])
+        env.Alias('doxygen', [doxygen])
+        all += [doxygen]
+    else:
+        if not env.GetOption('clean'):
+            env.cmd_not_found('doxygen')
 
 #
 # misc build targets
@@ -142,11 +188,12 @@ env.Default(targets)
 # cleanup
 #
 if 'all' in COMMAND_LINE_TARGETS:
-	env.Clean(all, ['doc', 'cmyth.conf'])
-	env.Clean(all, ['config.log','.sconf_temp','.sconsign.dblite'])
+    env.Clean(all, ['doc', 'cmyth.conf'])
+    env.Clean(all, [ 'config.log','.sconf_temp','.sconsign.dblite',
+                     'xcode/build' ])
 if 'doxygen' in COMMAND_LINE_TARGETS:
-	env.Clean(all, ['doc'])
+    env.Clean(all, ['doc'])
 
 if not env.GetOption('clean'):
-	vars.Save('cmyth.conf', env)
+    vars.Save('cmyth.conf', env)
 

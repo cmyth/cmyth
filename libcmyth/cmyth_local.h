@@ -144,13 +144,6 @@ struct cmyth_chanlist {
 	int chanlist_alloc;
 };
 
-/* Sergio: Added to support the tvguide functionality */
-struct cmyth_tvguide_progs {
-	cmyth_program_t * progs;
-	int count;
-	int alloc;
-};
-
 struct cmyth_recorder {
 	unsigned rec_have_stream;
 	unsigned rec_id;

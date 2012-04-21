@@ -232,7 +232,7 @@ extern cmyth_conn_t cmyth_conn_connect_event(char *server,
 					     unsigned buflen, int tcp_rcvbuf);
 
 /**
- * Create a file connection to a backend.
+ * Create a file connection to a backend for reading a recording.
  * \param prog program handle
  * \param control control handle
  * \param buflen buffer size for the connection to use
@@ -242,6 +242,19 @@ extern cmyth_conn_t cmyth_conn_connect_event(char *server,
 extern cmyth_file_t cmyth_conn_connect_file(cmyth_proginfo_t prog,
 					    cmyth_conn_t control,
 					    unsigned buflen, int tcp_rcvbuf);
+
+/**
+ * Create a file connection to a backend for reading a recording thumbnail.
+ * \param prog program handle
+ * \param control control handle
+ * \param buflen buffer size for the connection to use
+ * \param tcp_rcvbuf if non-zero, the TCP receive buffer size for the socket
+ * \return file handle
+ */
+extern cmyth_file_t cmyth_conn_connect_thumbnail(cmyth_proginfo_t prog,
+						 cmyth_conn_t control,
+						 unsigned buflen,
+						 int tcp_rcvbuf);
 
 /**
  * Create a ring buffer connection to a recorder.
@@ -955,11 +968,14 @@ extern int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog,
 	long long bookmark);
 extern cmyth_commbreaklist_t cmyth_commbreaklist_create(void);
 extern cmyth_commbreak_t cmyth_commbreak_create(void);
+#if defined(HAS_MYSQL)
 extern cmyth_commbreaklist_t cmyth_mysql_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_proginfo_t prog);
+#endif
 extern cmyth_commbreaklist_t cmyth_get_commbreaklist(cmyth_conn_t conn, cmyth_proginfo_t prog);
 extern cmyth_commbreaklist_t cmyth_get_cutlist(cmyth_conn_t conn, cmyth_proginfo_t prog);
 extern int cmyth_rcv_commbreaklist(cmyth_conn_t conn, int *err, cmyth_commbreaklist_t breaklist, int count);
 
+#if defined(HAS_MYSQL)
 /*
  * mysql info
  */
@@ -1006,11 +1022,12 @@ extern char * cmyth_mysql_escape_chars(cmyth_database_t db, char * string);
 extern int cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_dt, cmyth_commbreaklist_t breaklist, int conn_version);
 
 extern int cmyth_mysql_get_prev_recorded(cmyth_database_t db, cmyth_program_t **prog);
+#endif /* HAS_MYSQL */
 
 extern int cmyth_get_delete_list(cmyth_conn_t, char *, cmyth_proglist_t);
 
 #define PROGRAM_ADJUST  3600
 
-extern int cmyth_mythtv_remove_previos_recorded(cmyth_database_t db,char *query);
+extern int cmyth_mythtv_remove_previous_recorded(cmyth_database_t db,char *query);
 
 #endif /* __CMYTH_H */
