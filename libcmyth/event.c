@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2009, Jon Gettler
+ *  Copyright (C) 2005-2012, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/select.h>
 #include <cmyth_local.h>
 
 cmyth_event_t
