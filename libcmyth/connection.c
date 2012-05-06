@@ -44,6 +44,7 @@ static myth_protomap_t protomap[] = {
 	{63, "3875641D"},
 	{64, "8675309J"},
 	{65, "D2BB94C2"},
+	{66, "0C0FFEE0"},
 	{0, ""}
 };
 
@@ -521,6 +522,12 @@ cmyth_conn_connect_pathname(cmyth_proginfo_t prog,  cmyth_conn_t control,
 			  myth_host, prog->proginfo_port, buflen);
 		goto shut;
 	}
+	/*
+	 * Explicitly set the conn version to the control version as cmyth_connect() doesn't and some of
+	 * the cmyth_rcv_* functions expect it to be the same as the protocol version used by mythbackend.
+	 */
+	conn->conn_version = control->conn_version;
+
 	ann_size += strlen(pathname) + strlen(my_hostname);
 	announcement = malloc(ann_size);
 	if (!announcement) {
@@ -577,7 +584,7 @@ cmyth_conn_connect_pathname(cmyth_proginfo_t prog,  cmyth_conn_t control,
 	r = cmyth_rcv_u_long_long(conn, &err, &ret->file_length, count);
 	if (err) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
-			  "%s: (length) cmyth_rcv_longlong() failed (%d)\n",
+			  "%s: (length) cmyth_rcv_u_long_long() failed (%d)\n",
 			  __FUNCTION__, err);
 		goto shut;
 	}
