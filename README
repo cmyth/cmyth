@@ -20,3 +20,8 @@ To cleanup a target:
 To specify an install prefix:
 
 	$ PREFIX=<path> scons install
+
+To specify a compiler other than gcc:
+
+	$ CC=<compiler> scons
+	$ CROSS=<cross compiler prefix> scons

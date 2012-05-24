@@ -25,19 +25,6 @@
 #include <cmyth_local.h>
 #include <safe_string.h>
 
-#ifdef _MSC_VER
-static void nullprint(a, ...) { return; }
-#define PRINTF nullprint
-#define TRC  nullprint
-#elif 0
-#define PRINTF(x...) PRINTF(x)
-#define TRC(fmt, args...) PRINTF(fmt, ## args) 
-#else
-#define PRINTF(x...)
-#define TRC(fmt, args...) 
-#endif
-
-
 void
 cmyth_database_close(cmyth_database_t db)
 {
@@ -67,7 +54,6 @@ cmyth_database_init(char *host, char *db_name, char *user, char *pass)
 int
 cmyth_database_set_host(cmyth_database_t db, char *host)
 {
-	PRINTF("** SSDEBUG: setting the db host to %s\n", host);
 	cmyth_database_close(db);
 	ref_release(db->db_host);
 	db->db_host = ref_strdup(host);
@@ -80,7 +66,6 @@ cmyth_database_set_host(cmyth_database_t db, char *host)
 int
 cmyth_database_set_user(cmyth_database_t db, char *user)
 {
-	PRINTF("** SSDEBUG: setting the db user to %s\n", user);
 	cmyth_database_close(db);
 	ref_release(db->db_user);
 	db->db_user = ref_strdup(user);
@@ -93,7 +78,6 @@ cmyth_database_set_user(cmyth_database_t db, char *user)
 int
 cmyth_database_set_pass(cmyth_database_t db, char *pass)
 {
-	PRINTF("** SSDEBUG: setting the db pass to %s\n", pass);
 	cmyth_database_close(db);
 	ref_release(db->db_user);
 	db->db_pass = ref_strdup(pass);
@@ -106,7 +90,6 @@ cmyth_database_set_pass(cmyth_database_t db, char *pass)
 int
 cmyth_database_set_name(cmyth_database_t db, char *name)
 {
-	PRINTF("** SSDEBUG: setting the db name to %s\n", name);
 	cmyth_database_close(db);
 	ref_release(db->db_name);
 	db->db_name = ref_strdup(name);

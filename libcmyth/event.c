@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/select.h>
 #include <cmyth_local.h>
 
 cmyth_event_t

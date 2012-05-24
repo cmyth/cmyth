@@ -23,9 +23,10 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/select.h>
+#include <sys/types.h>
 #include <cmyth_local.h>
 
 #define __UNSIGNED	"0123456789"

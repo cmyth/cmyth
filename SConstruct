@@ -75,6 +75,12 @@ vars.Add('LD', '', 'ld')
 
 vars.Update(env)
 
+if 'CC' in os.environ:
+    env.Replace(CC = os.environ['CC'])
+
+if 'LD' in os.environ:
+    env.Replace(CC = os.environ['LD'])
+
 if 'CROSS' in os.environ:
     cross = os.environ['CROSS']
     env.Append(CROSS = cross)

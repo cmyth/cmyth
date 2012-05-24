@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <limits.h>
+#include <string.h>
 
 #include "cmyth/cmyth.h"
 #include "refmem/refmem.h"

@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/select.h>
+#include <sys/types.h>
 #include <cmyth_local.h>
 
 #ifdef _MSC_VER

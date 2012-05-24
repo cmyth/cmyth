@@ -20,6 +20,10 @@
 #ifndef __MVP_ATOMIC_H
 #define __MVP_ATOMIC_H
 
+#if defined(_MSC_VER)
+#define inline __inline
+#endif
+
 #if defined __mips__
 #include <atomic.h>
 #endif
@@ -87,13 +91,17 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		: "cc", "memory");
 #elif defined __mips__
 	__val = atomic_increment_val(valp);
-#else
+#elif defined __GNUC__
 	/*
 	 * Don't know how to atomic increment for a generic architecture
 	 * so try to use GCC builtin
 	 */
-//#warning unknown architecture, atomic increment is not...
 	__val = __sync_add_and_fetch(valp,1);
+#else
+#if !defined(_MSC_VER)
+#warning unknown architecture, atomic increment is not...
+#endif
+	__val = ++(*valp);
 #endif
 	return __val;
 }
@@ -163,14 +171,17 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 	while (__newval != __oldval);
 	/*  The value for __val is in '__oldval' */
 	__val = __oldval;
-#else
+#elif defined __GNUC__
 	/*
 	 * Don't know how to atomic decrement for a generic architecture
 	 * so use GCC builtin
 	 */
-//#warning unknown architecture, atomic deccrement is not...
-	__val = --(*valp);
 	__val = __sync_sub_and_fetch(valp,1);
+#else
+#if !defined(_MSC_VER)
+#warning unknown architecture, atomic deccrement is not...
+#endif
+	__val = --(*valp);
 #endif
 	return __val;
 }

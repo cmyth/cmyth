@@ -239,7 +239,7 @@ lookup_path(const char *path, struct path_info *info)
 	char *parts[8];
 	int i = 0;
 
-	memset(info, 0, sizeof(info));
+	memset(info, 0, sizeof(*info));
 
 	if (strcmp(path, "/") == 0) {
 		goto out;
@@ -479,7 +479,7 @@ static int myth_release(const char *path, struct fuse_file_info *fi)
 
 	debug("%s(): path '%s'\n", __FUNCTION__, path);
 
-	if (fi->fh >= 0) {
+	if (fi->fh != -1) {
 		f = files[i].file;
 		ref_release(f);
 		if (files[i].buf) {
@@ -981,7 +981,7 @@ static int myth_read(const char *path, char *buf, size_t size, off_t offset,
 		return readme_read(path, buf, size, offset, fi);
 	}
 
-	if (fi->fh < 0) {
+	if (fi->fh == -1) {
 		return -ENOENT;
 	}
 

@@ -4,9 +4,13 @@
 *.so
 *.so.*
 *.dylib
+*.swp
+*.suo
+*.user
 *~
 .sconsign*
 *.pyc
+._*
 src/mythcat
 src/mythfuse
 src/mythping
@@ -20,3 +24,4 @@ doc
 cmyth.conf
 xcode/build
 install
+win32/Debug

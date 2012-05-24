@@ -35,46 +35,25 @@
 #include <mysql/mysql.h>
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(disable:4267)
-#define pthread_mutex_lock(a)
-#define pthread_mutex_unlock(a)
-#define PTHREAD_MUTEX_INITIALIZER NULL;
-typedef void* pthread_mutex_t;
-extern pthread_mutex_t mutex;
-#define mutex __cmyth_mutex
-#define ECANCELED -1
-#define ETIMEDOUT -1
-#define SHUT_RDWR SD_BOTH
-typedef SOCKET cmyth_socket_t;
-typedef int socklen_t;
-#define snprintf _snprintf
-#define sleep(a) Sleep(a*1000)
-#define usleep(a) Sleep(a/1000)
-static inline struct tm* localtime_r (const time_t *clock, struct tm *result) { 
-	struct tm* data;
-  if (!clock || !result) return NULL;
-  data = localtime(clock);
-  if (!data) return NULL;
-	memcpy(result,data,sizeof(*result)); 
-	return result; 
-}
-static inline __int64 atoll(const char* s)
-{
-  __int64 value;
-  if(sscanf(s,"%I64d", &value))
-    return value;
-  else
-    return 0;
-}
-
+#if defined(_MSC_VER)
+#include "cmyth_msc.h"
 #else
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 #include <pthread.h>
+
+typedef int cmyth_socket_t;
+#define closesocket(fd) close(fd)
+#endif /* _MSC_VER */
+
 #define mutex __cmyth_mutex
 extern pthread_mutex_t mutex;
-#define closesocket(fd) close(fd)
-typedef int cmyth_socket_t;
-#endif
+
 /*
  * Some useful constants
  */
