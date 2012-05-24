@@ -87,7 +87,7 @@ if 'CROSS' in os.environ:
     env.Replace(CC = cross + 'gcc')
     env.Replace(LD = cross + 'ld')
 
-env.Append(CFLAGS = '-Werror')
+env.Append(CFLAGS = '-Wall -Wextra -Werror -Wno-unused-parameter')
 
 #
 # SCons builders

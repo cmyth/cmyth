@@ -35,7 +35,7 @@ static char * cmyth_conn_get_setting_unlocked(cmyth_conn_t conn, const char* hos
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct {
-	int version;
+	unsigned long version;
 	char token[9]; // 8 characters + the terminating NULL character
 } myth_protomap_t;
 
@@ -43,7 +43,7 @@ static myth_protomap_t protomap[] = {
 	{62, "78B5631E"},
 	{63, "3875641D"},
 	{64, "8675309J"},
-	{0, 0}
+	{0, ""}
 };
 
 /*

@@ -165,7 +165,7 @@ struct cmyth_ringbuf {
 struct cmyth_rec_num {
 	char *recnum_host;
 	unsigned short recnum_port;
-	unsigned recnum_id;
+	unsigned int recnum_id;
 };
 
 struct cmyth_keyframe {
@@ -174,7 +174,7 @@ struct cmyth_keyframe {
 };
 
 struct cmyth_posmap {
-	unsigned posmap_count;
+	unsigned int posmap_count;
 	struct cmyth_keyframe **posmap_list;
 };
 
