@@ -184,7 +184,6 @@ cmyth_ringbuf_setup(cmyth_recorder_t rec)
 
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s: url is: '%s'\n",
 		  __FUNCTION__, url);
-	path = url;
 	if (strncmp(url, service, sizeof(service) - 1) == 0) {
 		/*
 		 * The URL starts with rbuf://.  The rest looks like
@@ -213,6 +212,10 @@ cmyth_ringbuf_setup(cmyth_recorder_t rec)
 				  __FUNCTION__);
 			goto out;
 		}
+	} else {
+		cmyth_dbg(CMYTH_DBG_DEBUG, "%s: unrecognized URL '%s'\n",
+			  __FUNCTION__, url);
+		goto out;
 	}
 
 	new_rec = cmyth_recorder_dup(rec);

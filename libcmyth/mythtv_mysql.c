@@ -103,7 +103,6 @@ cmyth_database_set_name(cmyth_database_t db, char *name)
 static int
 cmyth_db_check_connection(cmyth_database_t db)
 {
-    int new_conn = 0;
     if(db->mysql != NULL)
     {
 	/* Fetch the mysql stats (uptime and stuff) to check the connection is
@@ -117,7 +116,6 @@ cmyth_db_check_connection(cmyth_database_t db)
     if(db->mysql == NULL)
     {
 	db->mysql = mysql_init(NULL);
-	new_conn = 1;
 	if(db->mysql == NULL)
 	{
 	    fprintf(stderr,"%s: mysql_init() failed, insufficient memory?",
@@ -765,7 +763,6 @@ cmyth_get_bookmark_offset(cmyth_database_t db, long chanid, long long mark, char
 		}
 		while ((row = mysql_fetch_row(res))) {
 			offset = safe_atoi(row[3]);
-			rectype = safe_atoi(row[4]);
 			rows++;
 		}
 	}
@@ -809,7 +806,6 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 	char * query_str;
 	int rows = 0;
 	cmyth_mysql_query_t * query;
-	query = cmyth_mysql_query_create(db,query_str);
 	cmyth_commbreak_t commbreak = NULL;
 	int i = 0;
 	long long start_previous = 0;
@@ -822,6 +818,7 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 		query_str = "SELECT m.type AS type, m.mark AS mark, s.offset AS offset FROM recordedmarkup m INNER JOIN recordedseek AS s ON (m.chanid = s.chanid AND m.starttime = s.starttime AND (FLOOR(m.mark / 15) + 1) = s.mark) WHERE m.chanid = ? AND m.starttime = ? AND m.type IN (?, ?) ORDER BY mark;";
 	}
 
+	query = cmyth_mysql_query_create(db,query_str);
 		
 	cmyth_dbg(CMYTH_DBG_ERROR,"%s, query=%s\n", __FUNCTION__,query_str);
 
@@ -886,6 +883,13 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 				}
 			} else if (safe_atoi(row[0]) == CMYTH_COMMBREAK_END) {
 				if ( safe_atoll(row[1]) != end_previous ) {
+					if (commbreak == NULL) {
+						cmyth_dbg(CMYTH_DBG_ERROR,
+							  "%s: error at %d\n",
+							  __FUNCTION__,
+							  __LINE__);
+						return -1;
+					}
 					commbreak->end_mark = safe_atoll(row[1]);
 					commbreak->end_offset = safe_atoll(row[3]);
 					breaklist->commbreak_list[rows] = commbreak;
@@ -893,6 +897,13 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 					rows++;
 				}
 				else if ( safe_atoll(row[1]) == safe_atoll(row[2]) ) {
+					if (commbreak == NULL) {
+						cmyth_dbg(CMYTH_DBG_ERROR,
+							  "%s: error at %d\n",
+							  __FUNCTION__,
+							  __LINE__);
+						return -1;
+					}
 					commbreak->end_mark = safe_atoll(row[1]);
 					commbreak->end_offset = safe_atoll(row[3]);
 					breaklist->commbreak_list[rows] = commbreak;
@@ -1008,6 +1019,7 @@ cmyth_mythtv_remove_previous_recorded(cmyth_database_t db,char *query)
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: mysql_query() Failed: %s\n", 
 			__FUNCTION__, mysql_error(db->mysql));
 	}
+	mysql_free_result(res);
 
 	return rows;
 }
@@ -1015,7 +1027,6 @@ cmyth_mythtv_remove_previous_recorded(cmyth_database_t db,char *query)
 int
 cmyth_mysql_testdb_connection(cmyth_database_t db,char **message) {
 	char buf[1000];
-	int new_conn = 0;
 	if (db->mysql != NULL) {
 		if (mysql_stat(db->mysql) == NULL) {
 			cmyth_database_close(db);
@@ -1024,7 +1035,6 @@ cmyth_mysql_testdb_connection(cmyth_database_t db,char **message) {
 	}
 	if (db->mysql == NULL) {
 		db->mysql = mysql_init(NULL);
-		new_conn = 1;
 		if(db->mysql == NULL) {
 			fprintf(stderr,"%s: mysql_init() failed, insufficient memory?", __FUNCTION__);
 			snprintf(buf, sizeof(buf), "mysql_init() failed, insufficient memory?");

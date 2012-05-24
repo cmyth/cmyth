@@ -31,18 +31,6 @@
 #include <sys/types.h>
 #include <cmyth_local.h>
 
-#ifdef _MSC_VER
-static void nullprint(a, ...) { return; }
-#define PRINTF nullprint
-#define TRC  nullprint
-#elif 0
-#define PRINTF(x...) PRINTF(x)
-#define TRC(fmt, args...) PRINTF(fmt, ## args) 
-#else
-#define PRINTF(x...)
-#define TRC(fmt, args...) 
-#endif
-
 #define LAST 0x7FFFFFFF
 
 static int cmyth_livetv_chain_has_url(cmyth_recorder_t rec, char * url);
@@ -423,7 +411,6 @@ cmyth_livetv_chain_update(cmyth_recorder_t rec, char * chainid,
 {
 	int ret=0;
 	char url[1024];
-	cmyth_conn_t control;
 	cmyth_proginfo_t loc_prog;
 	cmyth_file_t ft;
 
@@ -431,8 +418,6 @@ cmyth_livetv_chain_update(cmyth_recorder_t rec, char * chainid,
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: rec is NULL\n", __FUNCTION__);
 		goto out;
 	}
-
-	control = rec->rec_conn;
 
 	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
 	pthread_mutex_lock(&mutex);
@@ -518,7 +503,6 @@ cmyth_livetv_chain_setup(cmyth_recorder_t rec, int tcp_rcvbuf,
 
 	cmyth_recorder_t new_rec = NULL;
 	char url[1024];
-	cmyth_conn_t control;
 	cmyth_proginfo_t loc_prog;
 	cmyth_file_t ft;
 
@@ -528,8 +512,6 @@ cmyth_livetv_chain_setup(cmyth_recorder_t rec, int tcp_rcvbuf,
 			  __FUNCTION__);
 		return NULL;
 	}
-
-	control = rec->rec_conn;
 
 	/* Get the current recording information */
 	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
@@ -682,7 +664,6 @@ cmyth_livetv_chain_switch(cmyth_recorder_t rec, int dir)
 	ret = 0;
 
 	if(dir == LAST) {
-		PRINTF("**SSDEBUG:(cmyth_livetv_chain_switch) dir: %d\n", dir);
 		dir = rec->rec_livetv_chain->chain_ct
 				- rec->rec_livetv_chain->chain_current - 1;
 	}
@@ -692,8 +673,6 @@ cmyth_livetv_chain_switch(cmyth_recorder_t rec, int dir)
 			  rec->rec_livetv_chain->chain_ct - dir )) {
 		ref_release(rec->rec_livetv_file);
 		ret = rec->rec_livetv_chain->chain_current += dir;
-		PRINTF("**SSDEBUG:(cmyth_livetv_chain_switch): %s:%d\n",
-		"dooingSwitcheroo",ret);
 		rec->rec_livetv_file = ref_hold(rec->rec_livetv_chain->chain_files[ret]);
 		rec->rec_livetv_chain
 					->prog_update_callback(rec->rec_livetv_chain->progs[ret]);
@@ -727,7 +706,6 @@ cmyth_livetv_chain_switch_last(cmyth_recorder_t rec)
 	pthread_mutex_lock(&mutex);
 	dir = rec->rec_livetv_chain->chain_ct
 			- rec->rec_livetv_chain->chain_current - 1;
-	PRINTF("#@@@@#SSDEBUG: switch file changing adjusted dir: %d\n", dir);
 	if(dir != 0) {
 		cmyth_livetv_chain_switch(rec, dir);
 	}
@@ -804,8 +782,6 @@ cmyth_livetv_chain_request_block(cmyth_recorder_t rec, unsigned long len)
 
 		if(c == 0) { /* We've gotten to the end, need to progress in the chain */
 			/* Switch if there are files left in the chain */
-			PRINTF("**SSDEBUG:(cmyth_livetv_request_block): %s\n",
-			"reached end of stream must dooSwitcheroo");
 			retry = cmyth_livetv_chain_switch(rec, 1);
 		}
 	}
@@ -854,7 +830,7 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 	char msg[128];
 	int err;
 	int count;
-	long long c,p;
+	long long c;
 	long r;
 	long long ret;
 	cmyth_file_t fp;
@@ -881,8 +857,6 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 		 	(long)(fp->file_pos >> 32),
 		 	(long)(fp->file_pos & 0xffffffff));
 	
-		PRINTF("** SSDEBUG: offset %lld issuing seek command: %s\n", offset, msg);
-
 		if ((err = cmyth_send_message(rec->rec_conn, msg)) < 0) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 			  	"%s: cmyth_send_message() failed (%d)\n",
@@ -899,8 +873,6 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 			ret = err;
 			goto out;
 		}
-
-		PRINTF("** SSDEBUG: new pos %lld after seek command\n", c);
 
 		/* Check if the seek failed. If so, see if we can go to */
 		/* the previous or next file depending on the direction */
@@ -922,9 +894,10 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 					break;
 			}
 			fp = rec->rec_livetv_file;
+#if 0
+			long long p;
 			p = fp->file_pos;
 			p += offset;
-#if 0
 			printf("** SSDEBUG: offest %lld file position %lld after switch diff %lld\n", 
 							offset, fp->file_pos, p);
 			if(p < 0) { /* Re-synch the file position */

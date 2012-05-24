@@ -502,6 +502,8 @@ ref_release(void *p)
 		/* Remove a refcount */
 		mvp_atomic_dec(&total_refcount);
 
+		refcount = ((int)ref->refcount) - 1;
+
 		if (mvp_atomic_dec_and_test(&ref->refcount)) {
 			/*
 			 * Last reference, destroy the structure (if
@@ -522,7 +524,6 @@ ref_release(void *p)
 #endif /* DEBUG */
 /* Remove its bytes */
 		        total_bytecount -= ( sizeof(refcounter_t) + ref->length);
-			refcount = (int)ref->refcount;
 			free(block);
 		}
 		if (refcount < 0)
