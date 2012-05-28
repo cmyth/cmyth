@@ -27,6 +27,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#if !defined(_MSC_VER)
+#include <sys/time.h>
+#endif
 #include <refmem/refmem.h>
 #include <cmyth/cmyth.h>
 #include <time.h>

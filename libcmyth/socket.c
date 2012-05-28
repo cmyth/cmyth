@@ -363,7 +363,7 @@ cmyth_rcv_string(cmyth_conn_t conn, int *err, char *buf, int buflen, int count)
 			}
 		}
 
-		if (conn->conn_buf[conn->conn_pos] == *state) {
+		if (conn->conn_buf[conn->conn_pos] == (unsigned char)*state) {
 			/*
 			 * We matched the next (possibly first) step
 			 * of a separator, advance to the next.

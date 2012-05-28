@@ -41,7 +41,10 @@ link0 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major, minor)), shared)
 link1 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major)), shared)
 link2 = env.Symlink('lib%s%s' % (name, env.shlibsuffix()), shared)
 
-targets = [ static, shared, link0, link1, link2 ]
+targets = [ static ]
+
+if env.build_shared():
+    targets += [ shared, link0, link1, link2 ]
 
 env.Install(prefix + '/lib', static)
 

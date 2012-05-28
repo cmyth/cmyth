@@ -33,11 +33,15 @@
 #include <winsock2.h>
 
 #pragma warning(disable:4267)
+#pragma warning(disable:4996)
 
 #define pthread_mutex_lock(a)
 #define pthread_mutex_unlock(a)
 #define PTHREAD_MUTEX_INITIALIZER NULL;
 typedef void *pthread_mutex_t;
+
+#undef ECANCELED
+#undef ETIMEDOUT
 
 #define ECANCELED -1
 #define ETIMEDOUT -1

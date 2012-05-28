@@ -59,6 +59,13 @@ def soname(self, name, major=0, minor=0, branch=0):
     else:
         return '-Wl,-soname,lib%s.so.%d.%d.%d' % (name, major, minor, branch)
 
+def build_shared(self):
+    """Determine if shared objects should be built for this OS."""
+    if sys.platform == 'cygwin':
+        return False
+    else:
+        return True
+
 #
 # Initialize the build environment
 #
@@ -68,10 +75,12 @@ env.AddMethod(cmd_not_found, 'cmd_not_found')
 env.AddMethod(find_binary, 'find_binary')
 env.AddMethod(shlibsuffix, 'shlibsuffix')
 env.AddMethod(soname, 'soname')
+env.AddMethod(build_shared, 'build_shared')
 
 vars = Variables('cmyth.conf')
 vars.Add('CC', '', 'gcc')
 vars.Add('LD', '', 'ld')
+vars.Add('CFLAGS', '', '-Wall -Wextra -Werror -Wno-unused-parameter')
 
 vars.Update(env)
 
@@ -81,13 +90,14 @@ if 'CC' in os.environ:
 if 'LD' in os.environ:
     env.Replace(CC = os.environ['LD'])
 
+if 'CFLAGS' in os.environ:
+    env.Replace(CC = os.environ['CFLAGS'])
+
 if 'CROSS' in os.environ:
     cross = os.environ['CROSS']
     env.Append(CROSS = cross)
     env.Replace(CC = cross + 'gcc')
     env.Replace(LD = cross + 'ld')
-
-env.Append(CFLAGS = '-Wall -Wextra -Werror -Wno-unused-parameter')
 
 #
 # SCons builders
