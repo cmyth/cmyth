@@ -1197,6 +1197,30 @@ cmyth_proginfo_rec_status(cmyth_proginfo_t prog)
 	return prog->proginfo_rec_status;
 }
 
+/*
+ * cmyth_proginfo_flags(cmyth_proginfo_t prog)
+ *
+ * Scope: PUBLIC
+ *
+ * Description
+ *
+ * Retrieves the flags mask from a program info structure.
+ *
+ * Return Value:
+ *
+ * Success: The program flag mask.
+ *
+ * Failure: 0 (an invalid status)
+ */
+unsigned long
+cmyth_proginfo_flags(cmyth_proginfo_t prog)
+{
+  if (!prog) {
+    return 0;
+  }
+  return prog->proginfo_program_flags;
+}
+
 static int
 fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 {
