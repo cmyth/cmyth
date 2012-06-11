@@ -118,7 +118,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 #if defined __i486__ || defined __i586__ || defined __i686__
 	__asm__ __volatile__(
 		"lock xaddl %0, (%1);"
-		"     inc   %0;"
+		"     dec   %0;"
 		: "=r" (__val)
 		: "r" (valp), "0" (0x1)
 		: "cc", "memory"
