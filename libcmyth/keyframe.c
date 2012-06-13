@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include <cmyth_local.h>
 
 /*
@@ -116,7 +117,7 @@ cmyth_keyframe_string(cmyth_keyframe_t kf)
 	if (!kf) {
 		return NULL;
 	}
-	sprintf(pos, "%lld", kf->keyframe_pos);
+	sprintf(pos, "%"PRId64, kf->keyframe_pos);
 	len += strlen(pos);
 	sprintf(key, "%ld", kf->keyframe_number);
 	len += strlen(key);

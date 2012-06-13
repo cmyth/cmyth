@@ -830,7 +830,7 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 	char msg[128];
 	int err;
 	int count;
-	long long c;
+	int64_t c;
 	long r;
 	long long ret;
 	cmyth_file_t fp;
@@ -866,7 +866,7 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 		}
 
 		count = cmyth_rcv_length(rec->rec_conn);
-		if ((r=cmyth_rcv_long_long(rec->rec_conn, &err, &c, count)) < 0) {
+		if ((r=cmyth_rcv_int64(rec->rec_conn, &err, &c, count)) < 0) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 			  	"%s: cmyth_rcv_length() failed (%d)\n",
 			  	__FUNCTION__, r);

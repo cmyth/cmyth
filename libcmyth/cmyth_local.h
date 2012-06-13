@@ -147,9 +147,9 @@ struct cmyth_file {
 	long file_id;			/**< file identifier */
 	/** callback when close is completed */
 	void (*closed_callback)(cmyth_file_t file);
-	unsigned long long file_start;	/**< file start offest */
-	unsigned long long file_length;	/**< file length */
-	unsigned long long file_pos;	/**< current file position */
+	uint64_t file_start;	/**< file start offest */
+	uint64_t file_length;	/**< file length */
+	uint64_t file_pos;	/**< current file position */
 	cmyth_conn_t file_control;	/**< master backend connection */
 };
 
@@ -157,10 +157,10 @@ struct cmyth_ringbuf {
 	cmyth_conn_t conn_data;
 	long file_id;
 	char *ringbuf_url;
-	unsigned long long ringbuf_size;
-	unsigned long long file_length;
-	unsigned long long file_pos;
-	unsigned long long ringbuf_fill;
+	uint64_t ringbuf_size;
+	uint64_t file_length;
+	uint64_t file_pos;
+	uint64_t ringbuf_fill;
 	char *ringbuf_hostname;
 	int ringbuf_port;
 };
@@ -173,7 +173,7 @@ struct cmyth_rec_num {
 
 struct cmyth_keyframe {
 	unsigned long keyframe_number;
-	unsigned long long keyframe_pos;
+	uint64_t keyframe_pos;
 };
 
 struct cmyth_posmap {
@@ -182,8 +182,8 @@ struct cmyth_posmap {
 };
 
 struct cmyth_freespace {
-	unsigned long long freespace_total;
-	unsigned long long freespace_used;
+	uint64_t freespace_total;
+	uint64_t freespace_used;
 };
 
 struct cmyth_timestamp {
@@ -209,7 +209,7 @@ struct cmyth_proginfo {
 	char *proginfo_channame;  /* Deprecated in V8, simulated for compat. */
 	char *proginfo_chanicon;  /* New in V8 */
 	char *proginfo_url;
-	long long proginfo_Length;
+	int64_t proginfo_Length;
 	cmyth_timestamp_t proginfo_start_ts;
 	cmyth_timestamp_t proginfo_end_ts;
 	unsigned long proginfo_conflicting; /* Deprecated in V8, always 0 */
@@ -291,14 +291,27 @@ extern int cmyth_rcv_short(cmyth_conn_t conn, int *err, short *buf, int count);
 extern int cmyth_rcv_long(cmyth_conn_t conn, int *err, long *buf, int count);
 #define cmyth_rcv_u_long(c, e, b, n) cmyth_rcv_long(c, e, (long*)b, n)
 
-#define cmyth_rcv_long_long __cmyth_rcv_long_long
-extern int cmyth_rcv_long_long(cmyth_conn_t conn, int *err, long long *buf,
+#define cmyth_rcv_old_int64 __cmyth_rcv_old_int64
+extern int cmyth_rcv_old_int64(cmyth_conn_t conn, int *err, int64_t *buf,
 			       int count);
-#define cmyth_rcv_u_long_long(c, e, b, n) cmyth_rcv_long_long(c, e, (long long*)b, n)
 
-#define cmyth_rcv_int64 __cmyth_rcv_int64
-extern int cmyth_rcv_int64(cmyth_conn_t conn, int *err, long long *buf,
-			       int count);
+#define cmyth_rcv_new_int64 __cmyth_rcv_new_int64
+extern int cmyth_rcv_new_int64(cmyth_conn_t conn, int *err, int64_t *buf,
+			       int count, int forced);
+
+#define cmyth_rcv_old_uint64 __cmyth_rcv_old_uint64
+extern int cmyth_rcv_old_uint64(cmyth_conn_t conn, int *err, uint64_t *buf,
+				int count);
+
+#define cmyth_rcv_new_uint64 __cmyth_rcv_new_uint64
+extern int cmyth_rcv_new_uint64(cmyth_conn_t conn, int *err, uint64_t *buf,
+				int count, int forced);
+
+#define cmyth_rcv_int64(conn, err, buf, count)	\
+	cmyth_rcv_new_int64(conn, err, buf, count, 0)
+
+#define cmyth_rcv_uint64(conn, err, buf, count)	\
+	cmyth_rcv_new_uint64(conn, err, buf, count, 0)
 
 #define cmyth_rcv_ubyte __cmyth_rcv_ubyte
 extern int cmyth_rcv_ubyte(cmyth_conn_t conn, int *err, unsigned char *buf,
@@ -311,12 +324,6 @@ extern int cmyth_rcv_ushort(cmyth_conn_t conn, int *err, unsigned short *buf,
 #define cmyth_rcv_ulong __cmyth_rcv_ulong
 extern int cmyth_rcv_ulong(cmyth_conn_t conn, int *err, unsigned long *buf,
 			   int count);
-
-#define cmyth_rcv_ulong_long __cmyth_rcv_ulong_long
-extern int cmyth_rcv_ulong_long(cmyth_conn_t conn,
-				int *err,
-				unsigned long long *buf,
-				int count);
 
 #define cmyth_rcv_data __cmyth_rcv_data
 extern int cmyth_rcv_data(cmyth_conn_t conn, int *err, unsigned char *buf,

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <inttypes.h>
 
 #include "cmyth/cmyth.h"
 #include "refmem/refmem.h"
@@ -111,6 +112,11 @@ get_recordings(int level)
 		}
 		if (pathname) {
 			printf("\tPathname:        %s\n", pathname);
+		}
+
+		if (level > 4) {
+			printf("\tBytes:           %lld\n",
+			       cmyth_proginfo_length(prog));
 		}
 
 

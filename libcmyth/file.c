@@ -423,7 +423,7 @@ cmyth_file_seek(cmyth_file_t file, long long offset, int whence)
 	char msg[128];
 	int err;
 	int count;
-	long long c;
+	int64_t c;
 	long r;
 	long long ret;
 
@@ -473,7 +473,7 @@ cmyth_file_seek(cmyth_file_t file, long long offset, int whence)
 		ret = count;
 		goto out;
 	}
-	if ((r=cmyth_rcv_long_long(file->file_control, &err, &c, count)) < 0) {
+	if ((r=cmyth_rcv_int64(file->file_control, &err, &c, count)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_rcv_long_long() failed (%d)\n",
 			  __FUNCTION__, r);
