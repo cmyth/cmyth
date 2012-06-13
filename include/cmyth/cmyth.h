@@ -104,12 +104,20 @@ typedef enum {
 	CMYTH_EVENT_UNKNOWN = 0,
 	CMYTH_EVENT_CLOSE = 1,
 	CMYTH_EVENT_RECORDING_LIST_CHANGE,
+	CMYTH_EVENT_RECORDING_LIST_CHANGE_ADD,
+	CMYTH_EVENT_RECORDING_LIST_CHANGE_UPDATE,
+	CMYTH_EVENT_RECORDING_LIST_CHANGE_DELETE,
 	CMYTH_EVENT_SCHEDULE_CHANGE,
 	CMYTH_EVENT_DONE_RECORDING,
 	CMYTH_EVENT_QUIT_LIVETV,
+	CMYTH_EVENT_WATCH_LIVETV,
 	CMYTH_EVENT_LIVETV_CHAIN_UPDATE,
 	CMYTH_EVENT_SIGNAL,
 	CMYTH_EVENT_ASK_RECORDING,
+	CMYTH_EVENT_SYSTEM_EVENT,
+	CMYTH_EVENT_UPDATE_FILE_SIZE,
+	CMYTH_EVENT_GENERATED_PIXMAP,
+	CMYTH_EVENT_CLEAR_SETTINGS_CACHE,
 } cmyth_event_t;
 
 #define CMYTH_NUM_SORTS 2
@@ -853,6 +861,14 @@ extern cmyth_timestamp_t cmyth_proginfo_originalairdate(cmyth_proginfo_t prog);
  */
 extern cmyth_proginfo_rec_status_t cmyth_proginfo_rec_status(
 	cmyth_proginfo_t prog);
+
+/**
+ * Retrieve the flags associated with a program.
+ * \param prog proginfo handle
+ * \return flags
+ */
+extern unsigned long cmyth_proginfo_flags(
+  cmyth_proginfo_t prog);
 
 /**
  * Retrieve the size, in bytes, of a program.

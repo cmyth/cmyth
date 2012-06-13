@@ -583,18 +583,12 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		goto out;
 	}
 
-	/*
-	 * XXX: for some reason, this seems to return an error, even though
-	 *      it succeeds...
-	 */
-
-	ret = 0;
-
     out:
 	pthread_mutex_unlock(&mutex);
 
 	return ret;
 }
+
 
 /*
  * cmyth_proginfo_delete_recording(cmyth_conn_t control,
@@ -1243,6 +1237,30 @@ cmyth_proginfo_rec_status(cmyth_proginfo_t prog)
 	return prog->proginfo_rec_status;
 }
 
+/*
+ * cmyth_proginfo_flags(cmyth_proginfo_t prog)
+ *
+ * Scope: PUBLIC
+ *
+ * Description
+ *
+ * Retrieves the flags mask from a program info structure.
+ *
+ * Return Value:
+ *
+ * Success: The program flag mask.
+ *
+ * Failure: 0 (an invalid status)
+ */
+unsigned long
+cmyth_proginfo_flags(cmyth_proginfo_t prog)
+{
+  if (!prog) {
+    return 0;
+  }
+  return prog->proginfo_program_flags;
+}
+
 static int
 fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 {
@@ -1407,13 +1425,6 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		ret = err;
 		goto out;
 	}
-
-	/*
-	 * XXX: for some reason, this seems to return an error, even though
-	 *      it succeeds...
-	 */
-
-	ret = 0;
 
     out:
 	return ret;
