@@ -81,6 +81,7 @@ vars = Variables('cmyth.conf')
 vars.Add('CC', '', 'gcc')
 vars.Add('LD', '', 'ld')
 vars.Add('CFLAGS', '', '-Wall -Wextra -Werror -Wno-unused-parameter')
+vars.Add('LDFLAGS', '', '')
 
 vars.Update(env)
 
@@ -91,7 +92,10 @@ if 'LD' in os.environ:
     env.Replace(CC = os.environ['LD'])
 
 if 'CFLAGS' in os.environ:
-    env.Replace(CC = os.environ['CFLAGS'])
+    env.Replace(CFLAGS = os.environ['CFLAGS'])
+
+if 'LDFLAGS' in os.environ:
+    env.Replace(LDFLAGS = os.environ['LDFLAGS'])
 
 if 'CROSS' in os.environ:
     cross = os.environ['CROSS']

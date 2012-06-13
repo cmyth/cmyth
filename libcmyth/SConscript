@@ -29,11 +29,12 @@ linkflags = env.soname(name, major, minor, branch)
 
 static = env.StaticLibrary(name, src,
                            LIBS = [],
+                           LINKFLAGS = env['LDFLAGS'],
                            CPPPATH = [ '../include', '.' ])
 
 shared = env.SharedLibrary(name, src,
                            SHLIBSUFFIX = env.shlibsuffix(major, minor, branch),
-                           LINKFLAGS = linkflags,
+                           LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
                            LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 

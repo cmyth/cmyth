@@ -18,12 +18,12 @@ src = [ 'alloc.c', 'debug.c' ]
 linkflags = env.soname(name, major, minor, branch)
 
 static = env.StaticLibrary(name, src,
-                           LINKFLAGS = linkflags,
+                           LINKFLAGS = env['LDFLAGS'],
                            LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 shared = env.SharedLibrary(name, src,
                            SHLIBSUFFIX = env.shlibsuffix(major, minor, branch),
-                           LINKFLAGS = linkflags,
+                           LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
                            LIBS = [],
                            CPPPATH = [ '../include', '.' ])
 

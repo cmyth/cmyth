@@ -15,6 +15,7 @@ if conf.CheckLib('mysqlclient'):
 if conf.CheckLib('fuse'):
     mythfuse = env.Program('mythfuse', 'mythfuse.c',
                            CCFLAGS = ' -D_FILE_OFFSET_BITS=64',
+                           LINKFLAGS = env['LDFLAGS'],
                            CPPPATH = [ '../include' ],
                            LIBS = libs + [ 'fuse' ],
                            LIBPATH = [ '../libcmyth', '../librefmem' ])
@@ -22,11 +23,13 @@ if conf.CheckLib('fuse'):
 env = conf.Finish()
 
 mythping = env.Program('mythping', 'mythping.c',
+                       LINKFLAGS = env['LDFLAGS'],
                        CPPPATH = [ '../include' ],
                        LIBS = libs,
                        LIBPATH = [ '../libcmyth', '../librefmem' ])
 
 mythcat = env.Program('mythcat', 'mythcat.c',
+                      LINKFLAGS = env['LDFLAGS'],
                       CPPPATH = [ '../include' ],
                       LIBS = libs,
                       LIBPATH = [ '../libcmyth', '../librefmem' ])
