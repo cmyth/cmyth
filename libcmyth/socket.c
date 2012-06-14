@@ -1307,7 +1307,7 @@ cmyth_rcv_old_uint64(cmyth_conn_t conn, int *err, uint64_t *buf, int count)
 			  __FUNCTION__, consumed);
 		return consumed;
 	}
-	consumed += cmyth_rcv_u_long(conn, err, &lo, count);
+	consumed += cmyth_rcv_u_long(conn, err, &lo, count-consumed);
 	if (*err) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_rcv_u_long_long() failed (%d)\n",
