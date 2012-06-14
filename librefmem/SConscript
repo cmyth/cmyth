@@ -28,22 +28,22 @@ shared = env.SharedLibrary(name, src,
                            CPPPATH = [ '../include', '.' ])
 
 link0 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major, minor)), shared)
-link1 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major)), shared)
-link2 = env.Symlink('lib%s%s' % (name, env.shlibsuffix()), shared)
+link1 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major)), link0)
+link2 = env.Symlink('lib%s%s' % (name, env.shlibsuffix()), link1)
 
 targets = [ static ]
+
+env.Install(prefix + '/lib', static)
 
 if env.build_shared():
     targets += [ shared, link0, link1, link2 ]
 
-env.Install(prefix + '/lib', static)
-
-lib0 = env.Install(prefix + '/lib', shared)
-lib1 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                       env.shlibsuffix(major, minor)), lib0)
-lib2 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                       env.shlibsuffix(major)), lib1)
-lib3 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                       env.shlibsuffix()), lib2)
+    lib0 = env.Install(prefix + '/lib', shared)
+    lib1 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                           env.shlibsuffix(major, minor)), lib0)
+    lib2 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                           env.shlibsuffix(major)), lib1)
+    lib3 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                           env.shlibsuffix()), lib2)
 
 Return('targets')

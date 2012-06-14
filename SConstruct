@@ -9,6 +9,8 @@ import string
 
 from os import pathsep
 
+import SCons.Builder
+
 def find_binary(self, filename):
     """Find a file in the system search path"""
     path = os.environ['PATH']
@@ -106,7 +108,11 @@ if 'CROSS' in os.environ:
 #
 # SCons builders
 #
-builder = Builder(action = "ln -s ${SOURCE.file} ${TARGET.file}", chdir = True)
+def create_link(target, source, env):
+    os.symlink(os.path.basename(str(source[0])),
+               os.path.abspath(str(target[0])))
+
+builder = SCons.Builder.Builder(action = create_link)
 env.Append(BUILDERS = {"Symlink" : builder})
 
 #
@@ -133,6 +139,8 @@ dox = env.find_binary('doxygen')
 #
 if 'PREFIX' in os.environ:
     prefix = os.environ['PREFIX']
+    if not prefix[0] == '/':
+        prefix = os.getcwd() + '/' + prefix
 else:
     prefix = '/usr/local'
 
