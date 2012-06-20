@@ -297,7 +297,7 @@ cmyth_timestamp_to_string(char *str, cmyth_timestamp_t ts)
 		return -EINVAL;
 	}
 	sprintf(str,
-		"%4.4u-%2.2hhu-%2.2hhuT%2.2hhu:%2.2hhu:%2.2hhu",
+		"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
 		ts->timestamp_year,
 		ts->timestamp_month,
 		ts->timestamp_day,
@@ -339,7 +339,7 @@ cmyth_timestamp_to_isostring(char *str, cmyth_timestamp_t ts)
 		return -EINVAL;
 	}
 	sprintf(str,
-		"%4.4u-%2.2hhu-%2.2hhu",
+		"%4.4ld-%2.2ld-%2.2ld",
 		ts->timestamp_year,
 		ts->timestamp_month,
 		ts->timestamp_day);
@@ -362,7 +362,7 @@ cmyth_timestamp_to_display_string(char *str, cmyth_timestamp_t ts,
 	}
 	if (time_format_12)
 	{
-		unsigned char hour = ts->timestamp_hour;
+		unsigned long hour = ts->timestamp_hour;
 		int pm = 0;
 		if (hour > 11)
 		{
@@ -373,7 +373,7 @@ cmyth_timestamp_to_display_string(char *str, cmyth_timestamp_t ts,
 			hour = 12;
 
 		sprintf(str,
-			"%4.4u-%2.2hhu-%2.2hhuT%2.2hhu:%2.2hhu:%2.2hhu %s",
+			"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld %s",
 			ts->timestamp_year,
 			ts->timestamp_month,
 			ts->timestamp_day,
@@ -385,7 +385,7 @@ cmyth_timestamp_to_display_string(char *str, cmyth_timestamp_t ts,
 	else
 	{
 		sprintf(str,
-			"%4.4u-%2.2hhu-%2.2hhuT%2.2hhu:%2.2hhu:%2.2hhu",
+			"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
 			ts->timestamp_year,
 			ts->timestamp_month,
 			ts->timestamp_day,
@@ -441,7 +441,7 @@ cmyth_datetime_to_string(char *str, cmyth_timestamp_t ts)
 	tm_datetime.tm_isdst = ts->timestamp_isdst;
 	t_datetime = mktime(&tm_datetime);
 	sprintf(str,
-		"%4.4u-%2.2hhu-%2.2hhuT%2.2hhu:%2.2hhu:%2.2hhu",
+		"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
 		ts->timestamp_year,
 		ts->timestamp_month,
 		ts->timestamp_day,
