@@ -1266,7 +1266,7 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 {
 	char *buf;
 	unsigned int len = ((2 * CMYTH_LONGLONG_LEN) + 
-			    (4 * CMYTH_TIMESTAMP_LEN) +
+			    (6 * CMYTH_TIMESTAMP_LEN) +
 			    (16 * CMYTH_LONG_LEN));
 	char start_ts[CMYTH_TIMESTAMP_LEN + 1];
 	char end_ts[CMYTH_TIMESTAMP_LEN + 1];
