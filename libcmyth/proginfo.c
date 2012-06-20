@@ -259,6 +259,9 @@ cmyth_proginfo_create(void)
 	ret->proginfo_storagegroup = NULL;
 	ret->proginfo_recpriority_2 = NULL;
 	ret->proginfo_parentid = 0;
+	ret->proginfo_audioproperties = 0;
+	ret->proginfo_videoproperties = 0;
+	ret->proginfo_subtitletype = 0;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 
