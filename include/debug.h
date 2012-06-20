@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #if defined ANDROID
 #include <android/log.h>
@@ -51,19 +52,19 @@ __cmyth_dbg_setlevel(cmyth_debug_ctx_t *ctx, int level)
 static inline void
 __cmyth_dbg(cmyth_debug_ctx_t *ctx, int level, char *fmt, va_list ap)
 {
+	char msg[4096];
+	int len;
 	if (!ctx) {
 		return;
 	}
 	if ((ctx->selector && ctx->selector(level, ctx->cur_level)) ||
 	    (!ctx->selector && (level < ctx->cur_level))) {
+		len = snprintf(msg, sizeof(msg), "(%s)", ctx->name);
+		vsnprintf(msg + len, sizeof(msg)-len, fmt, ap);
 #if defined ANDROID
-		char buf[512];
-		snprintf(buf, sizeof(buf), "(%s) ", ctx->name);
-		vsnprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), fmt, ap);
 		__android_log_print(ANDROID_LOG_INFO, "cmyth_dbg", buf);
 #else
-		fprintf(stderr, "(%s)", ctx->name);
-		vfprintf(stderr, fmt, ap);
+		fwrite(msg, strlen(msg), 1, stdout);
 #endif
 	}
 }
