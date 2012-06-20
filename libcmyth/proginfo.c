@@ -1274,7 +1274,7 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	char rec_end_ts[CMYTH_TIMESTAMP_LEN + 1];
 	char originalairdate[CMYTH_TIMESTAMP_LEN + 1];
 	char lastmodified[CMYTH_TIMESTAMP_LEN + 1];
-	int err;
+	int err = 0;
 	int ret = 0;
 	char *host = "libcmyth";
 
