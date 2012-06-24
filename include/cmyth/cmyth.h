@@ -610,6 +610,9 @@ extern long long cmyth_ringbuf_seek(cmyth_recorder_t rec,
 				    long long offset,
 				    int whence);
 
+extern int cmyth_ringbuf_read(cmyth_recorder_t rec,
+			      char *buf,
+			      unsigned long len);
 /*
  * -----------------------------------------------------------------
  * Recorder Number Operations
