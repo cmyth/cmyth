@@ -60,7 +60,7 @@ long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	}
 	if ((r=cmyth_rcv_int64(conn, &err, &ll, count)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
-			"%s: cmyth_rcv_long_long() failed (%d)\n",
+			"%s: cmyth_rcv_int64() failed (%d)\n",
 			__FUNCTION__, r);
 		ret = err;
 		goto out;

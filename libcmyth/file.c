@@ -465,7 +465,7 @@ cmyth_file_seek(cmyth_file_t file, long long offset, int whence)
 	}
 	if ((r=cmyth_rcv_int64(file->file_control, &err, &c, count)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
-			  "%s: cmyth_rcv_long_long() failed (%d)\n",
+			  "%s: cmyth_rcv_int64() failed (%d)\n",
 			  __FUNCTION__, r);
 		ret = err;
 		goto out;
