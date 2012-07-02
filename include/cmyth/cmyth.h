@@ -949,6 +949,14 @@ extern char *cmyth_proginfo_recgroup(cmyth_proginfo_t prog);
  */
 extern char *cmyth_proginfo_chanicon(cmyth_proginfo_t prog);
 
+
+/**
+ * Retrieve the production year for this program info
+ * \param prog proginfo handle
+ * \return production year
+ */
+extern unsigned short cmyth_proginfo_year(cmyth_proginfo_t prog);
+
 /*
  * -----------------------------------------------------------------
  * Program List Operations

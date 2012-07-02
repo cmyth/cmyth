@@ -262,6 +262,7 @@ cmyth_proginfo_create(void)
 	ret->proginfo_audioproperties = 0;
 	ret->proginfo_videoproperties = 0;
 	ret->proginfo_subtitletype = 0;
+	ret->proginfo_year = 0;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 
@@ -354,6 +355,7 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_audioproperties = p->proginfo_audioproperties;
 	ret->proginfo_videoproperties = p->proginfo_videoproperties;
 	ret->proginfo_subtitletype = p->proginfo_subtitletype;
+	ret->proginfo_year = p->proginfo_year;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 }
@@ -562,6 +564,9 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_audioproperties);
 		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_videoproperties);
 		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_subtitletype);
+	}
+	if (control->conn_version >= 43) {
+		sprintf(buf + strlen(buf), "%d[]:[]", prog->proginfo_year);
 	}
 
 	pthread_mutex_lock(&mutex);
@@ -1261,6 +1266,32 @@ cmyth_proginfo_flags(cmyth_proginfo_t prog)
   return prog->proginfo_program_flags;
 }
 
+/*
+ * cmyth_proginfo_year(cmyth_proginfo_t prog)
+ *
+ *
+ * Scope: PUBLIC
+ *
+ * Description
+ *
+ * Retrieves the 'proginfo_year' field of a program info
+ * structure.
+ *
+ * Return Value:
+ *
+ * Success: the production year for the program
+ *
+ * Failure: 0
+ */
+unsigned short
+cmyth_proginfo_year(cmyth_proginfo_t prog)
+{
+	if (!prog) {
+		return 0;
+	}
+	return prog->proginfo_year;
+}
+
 static int
 fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 {
@@ -1415,6 +1446,9 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_audioproperties);
 		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_videoproperties);
 		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_subtitletype);
+	}
+	if (control->conn_version >= 43) {
+		sprintf(buf + strlen(buf), "%d[]:[]", prog->proginfo_year);
 	}
 
 	if ((err = cmyth_send_message(control, buf)) < 0) {

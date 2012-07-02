@@ -2348,8 +2348,8 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	}	
 
 	/*
-	* Get Year
-	*/
+	 * Get Year
+	 */
 	if (buf->proginfo_version >= 43) {
 		consumed = cmyth_rcv_ushort(conn, err, &buf->proginfo_year,
 						count);
