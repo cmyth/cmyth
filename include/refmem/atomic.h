@@ -74,7 +74,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		      : "cc", "memory");
 #elif defined ANDROID
 	__val = __atomic_inc(valp) + 1;
-#elif defined __arm__
+#elif defined __arm__ && !defined __thumb__
 	int tmp1, tmp2;
 	int inc = 1;
 	__asm__ __volatile__ (
@@ -142,7 +142,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		      : "cc", "memory");
 #elif defined ANDROID
 	__val = __atomic_dec(valp) - 1;
-#elif defined __arm__
+#elif defined __arm__ && !defined __thumb__
 	int tmp1, tmp2;
 	int inc = -1;
 	__asm__ __volatile__ (
