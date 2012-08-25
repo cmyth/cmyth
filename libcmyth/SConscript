@@ -20,7 +20,7 @@ src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'livetv.c', 'commbreak.c' ]
 
 conf = Configure(env)
-if conf.CheckCHeader('mysql/mysql.h'):
+if conf.CheckCHeader('mysql/mysql.h') and conf.CheckLib('mysqlclient'):
     conf.env.Append(CPPFLAGS = '-DHAS_MYSQL')
     src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
 env = conf.Finish()
