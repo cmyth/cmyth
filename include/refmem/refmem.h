@@ -24,7 +24,7 @@
 #ifndef __REFMEM_H
 #define __REFMEM_H
 
-#include <refmem/atomic.h>
+#include "atomic.h"
 
 /*
  * -----------------------------------------------------------------

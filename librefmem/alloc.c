@@ -59,6 +59,12 @@
 #endif
 #endif /* DEBUG */
 
+/* Disable optimization on OSX ppc
+   Compilation fails in release mode both with Apple gcc build 5490 and 5493 */
+#if defined(__APPLE__) && defined(__ppc__)
+#pragma GCC optimization_level 0
+#endif
+
 static mvp_atomic_t total_refcount=0;
 static mvp_atomic_t total_bytecount=0;
 /*
@@ -326,7 +332,8 @@ ref_realloc(void *p, size_t len)
 	refmem_dbg(REF_DBG_DEBUG, "%s(%d, ret = %p, ref = %p) {\n",
 		   __FUNCTION__, len, ret, ref);
 #ifdef DEBUG
-	assert(ref->magic == ALLOC_MAGIC);
+  if(p)
+	  assert(ref->magic == ALLOC_MAGIC);
 #endif /* DEBUG */
 	if (p && ret) {
 		memcpy(ret, p, ref->length);
@@ -522,8 +529,8 @@ ref_release(void *p)
 			ref_remove(ref);
 			ref->next = NULL;
 #endif /* DEBUG */
-/* Remove its bytes */
-		        total_bytecount -= ( sizeof(refcounter_t) + ref->length);
+			/* Remove its bytes */
+			total_bytecount -= ( sizeof(refcounter_t) + ref->length);
 			free(block);
 		}
 		if (refcount < 0)
@@ -532,3 +539,7 @@ ref_release(void *p)
 	}
 	refmem_dbg(REF_DBG_DEBUG, "%s(%p) }\n", __FUNCTION__, p);
 }
+
+#if defined(__APPLE__) && defined(__ppc__)
+#pragma GCC optimization_level reset
+#endif

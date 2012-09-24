@@ -20,7 +20,12 @@
 #ifndef __MVP_ATOMIC_H
 #define __MVP_ATOMIC_H
 
+#ifdef __APPLE__
+#pragma GCC optimization_level 0
+#endif
+
 #if defined(_MSC_VER)
+#include <windows.h>
 #define inline __inline
 #endif
 
@@ -47,7 +52,7 @@ static inline unsigned
 __mvp_atomic_increment(mvp_atomic_t *valp)
 {
 	mvp_atomic_t __val;
-#if defined __i486__ || defined __i586__ || defined __i686__
+#if defined __i486__ || defined __i586__ || defined __i686__ || defined __x86_64__
 	__asm__ __volatile__(
 		"lock xaddl %0, (%1);"
 		"     inc   %0;"
@@ -62,7 +67,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		      : "memory");
 	/* on the x86 __val is the pre-increment value, so normalize it. */
 	++__val;
-#elif defined __powerpc__
+#elif defined __powerpc__ || defined __ppc__
 	asm volatile ("1:	lwarx   %0,0,%1\n"
 		      "	addic.   %0,%0,1\n"
 		      "	dcbt    %0,%1\n"
@@ -72,6 +77,8 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 		      : "=&r" (__val)
 		      : "r" (valp)
 		      : "cc", "memory");
+#elif defined _MSC_VER
+	__val = InterlockedIncrement(valp);
 #elif defined ANDROID
 	__val = __atomic_inc(valp) + 1;
 #elif defined __arm__ && !defined __thumb__
@@ -115,12 +122,12 @@ static inline unsigned
 __mvp_atomic_decrement(mvp_atomic_t *valp)
 {
 	mvp_atomic_t __val;
-#if defined __i486__ || defined __i586__ || defined __i686__
+#if defined __i486__ || defined __i586__ || defined __i686__ || defined __x86_64__
 	__asm__ __volatile__(
 		"lock xaddl %0, (%1);"
 		"     dec   %0;"
 		: "=r" (__val)
-		: "r" (valp), "0" (0x1)
+		: "r" (valp), "0" (-0x1)
 		: "cc", "memory"
 		);
 #elif defined __i386__ || defined __x86_64__
@@ -130,7 +137,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 		      : "memory");
 	/* __val is the pre-decrement value, so normalize it */
 	--__val;
-#elif defined __powerpc__
+#elif defined __powerpc__ || defined __ppc__
 	asm volatile ("1:	lwarx   %0,0,%1\n"
 		      "	addic.   %0,%0,-1\n"
 		      "	dcbt    %0,%1\n"
@@ -171,6 +178,8 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 	while (__newval != __oldval);
 	/*  The value for __val is in '__oldval' */
 	__val = __oldval;
+#elif defined _MSC_VER
+	__val = InterlockedDecrement(valp);
 #elif defined __GNUC__
 	/*
 	 * Don't know how to atomic decrement for a generic architecture
@@ -211,5 +220,9 @@ static inline void mvp_atomic_set(mvp_atomic_t *a, unsigned val) {
 static inline int mvp_atomic_val(mvp_atomic_t *a) {
 	return *a;
 };
+
+#ifdef __APPLE__
+#pragma GCC optimization_level reset
+#endif
 
 #endif  /* __MVP_ATOMIC_H */
