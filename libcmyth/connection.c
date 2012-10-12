@@ -36,7 +36,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct {
 	unsigned int version;
-	char token[14]; // 8 characters + the terminating NULL character
+	char token[14]; // up to 13 chars used in v74 + the terminating NULL character
 } myth_protomap_t;
 
 static myth_protomap_t protomap[] = {
