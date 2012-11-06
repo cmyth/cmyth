@@ -105,9 +105,7 @@ __mvp_atomic_increment(mvp_atomic_t *valp)
 	 */
 	__val = __sync_add_and_fetch(valp,1);
 #else
-#if !defined(_MSC_VER)
 #warning unknown architecture, atomic increment is not...
-#endif
 	__val = ++(*valp);
 #endif
 	return __val;
@@ -187,9 +185,7 @@ __mvp_atomic_decrement(mvp_atomic_t *valp)
 	 */
 	__val = __sync_sub_and_fetch(valp,1);
 #else
-#if !defined(_MSC_VER)
 #warning unknown architecture, atomic deccrement is not...
-#endif
 	__val = --(*valp);
 #endif
 	return __val;
