@@ -22,7 +22,9 @@ cscope.files
 cscope.in.out
 cscope.out
 cscope.po.out
-doc
+doc/all
+doc/api
+doc/man
 cmyth.conf
 xcode/build
 install

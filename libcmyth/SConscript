@@ -11,7 +11,7 @@ prefix = env['PREFIX']
 name = 'cmyth'
 major = 0
 minor = 1
-branch = 3
+branch = 4
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'file.c', 'freespace.c', 'keyframe.c',
@@ -19,11 +19,8 @@ src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
         'livetv.c', 'commbreak.c' ]
 
-conf = Configure(env)
-if conf.CheckCHeader('mysql/mysql.h') and conf.CheckLib('mysqlclient'):
-    conf.env.Append(CPPFLAGS = '-DHAS_MYSQL')
+if env['HAS_MYSQL'] == 'yes':
     src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
-env = conf.Finish()
 
 linkflags = env.soname(name, major, minor, branch)
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -18,13 +18,11 @@
  */
 
 /** \file refmem.h
- * A C library for managing reference counted memory allocations
+ * A C library for managing reference counted memory allocations.
  */
 
 #ifndef __REFMEM_H
 #define __REFMEM_H
-
-#include "atomic.h"
 
 /*
  * -----------------------------------------------------------------
@@ -32,7 +30,10 @@
  * -----------------------------------------------------------------
  */
 
-/* Return current number of references outstanding for everything */
+/**
+ * Return current number of references outstanding for everything.
+ * \returns The number of references (not objects) that currently exist.
+ */
 extern int ref_get_refcount();
 
 /**
@@ -62,11 +63,10 @@ extern char *ref_strdup(char *str);
  * \param func function name
  * \param line line number
  * \return reference counted memory
+ * \note __ref_alloc() should not be called directly.
  */
-extern void *__ref_alloc(size_t len,
-				 const char *file,
-				 const char *func,
-				 int line);
+extern void *__ref_alloc(size_t len, const char *file, const char *func,
+			 int line);
 
 /**
  * Allocate a block of reference counted memory.
@@ -74,10 +74,11 @@ extern void *__ref_alloc(size_t len,
  * \return pointer to reference counted memory block
  */
 #if defined(DEBUG)
-#define ref_alloc(l) (__ref_alloc((l), __FILE__, __FUNCTION__, __LINE__))
+#define ref_alloc(len) (__ref_alloc((len), __FILE__, __FUNCTION__, __LINE__))
 #else
-#define ref_alloc(l) (__ref_alloc((l), (char *)0, (char *)0, 0))
+#define ref_alloc(len) (__ref_alloc((len), (char *)0, (char *)0, 0))
 #endif
+
 /**
  * Reallocate reference counted memory.
  * \param p allocated memory

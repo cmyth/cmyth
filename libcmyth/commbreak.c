@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2012, Jon Gettler
+ *  Copyright (C) 2005-2013, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -305,3 +305,65 @@ cmyth_mysql_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_prog
 	return breaklist;
 }
 #endif /* HAS_MYSQL */
+
+long long
+cmyth_commbreak_start_mark(cmyth_commbreak_t cb)
+{
+	if (cb == NULL) {
+		return -1;
+	}
+
+	return cb->start_mark;
+}
+
+long long
+cmyth_commbreak_end_mark(cmyth_commbreak_t cb)
+{
+	if (cb == NULL) {
+		return -1;
+	}
+
+	return cb->end_mark;
+}
+
+long long
+cmyth_commbreak_start_offset(cmyth_commbreak_t cb)
+{
+	if (cb == NULL) {
+		return -1;
+	}
+
+	return cb->start_offset;
+}
+
+long long
+cmyth_commbreak_end_offset(cmyth_commbreak_t cb)
+{
+	if (cb == NULL) {
+		return -1;
+	}
+
+	return cb->end_offset;
+}
+
+int
+cmyth_commbreak_get_count(cmyth_commbreaklist_t cbl)
+{
+	if (cbl == NULL) {
+		return -1;
+	}
+
+	return (int)cbl->commbreak_count;
+}
+
+cmyth_commbreak_t
+cmyth_commbreak_get_item(cmyth_commbreaklist_t cbl, unsigned int index)
+{
+	int i = (int)index;
+
+	if ((cbl == NULL) || (i < 0) || (i >= cbl->commbreak_count)) {
+		return NULL;
+	}
+
+	return (cmyth_commbreak_t)ref_hold(cbl->commbreak_list[index]);
+}

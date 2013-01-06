@@ -1,6 +1,6 @@
 #
 # SCons build script for libcmyth
-# http://www.mvpmc.org/
+# http://cmyth.github.com/
 #
 
 import os
@@ -84,6 +84,7 @@ vars.Add('CC', '', 'gcc')
 vars.Add('LD', '', 'ld')
 vars.Add('CFLAGS', '', '-Wall -Wextra -Werror -Wno-unused-parameter')
 vars.Add('LDFLAGS', '', '')
+vars.Add('HAS_MYSQL', '', '')
 
 vars.Update(env)
 
@@ -104,6 +105,17 @@ if 'CROSS' in os.environ:
     env.Append(CROSS = cross)
     env.Replace(CC = cross + 'gcc')
     env.Replace(LD = cross + 'ld')
+
+if 'NO_MYSQL' in os.environ:
+    env.Replace(HAS_MYSQL = 'no')
+elif env['HAS_MYSQL'] == '':
+    conf = Configure(env)
+    if conf.CheckCHeader('mysql/mysql.h') and conf.CheckLib('mysqlclient'):
+        conf.env.Replace(HAS_MYSQL = 'yes')
+    env = conf.Finish()
+
+if env['HAS_MYSQL'] == 'yes':
+    env.Append(CPPFLAGS = '-DHAS_MYSQL')
 
 #
 # SCons builders
@@ -192,15 +204,25 @@ if build_cscope:
 #
 if build_doxygen:
     if dox != '':
-        doxygen = env.Command([ 'doc' ],
-                              [ 'Doxyfile',
-                                Glob('src/*.[ch]'),
-                            Glob('lib*/*.[ch]'),
-                            Glob('include/*.h'),
-                            Glob('include/*/*.h') ],
-            [ '%s Doxyfile' % dox ])
-        env.Alias('doxygen', [doxygen])
-        all += [doxygen]
+        internal = env.Command([ 'doc/all/html/index.html' ],
+                               [ 'doc/Doxyfile.all',
+                                 Glob('src/*.[ch]'),
+                                 Glob('lib*/*.[ch]'),
+                                 Glob('include/*.h'),
+                                 Glob('include/*/*.h') ],
+                               [ '%s doc/Doxyfile.all' % dox ])
+        external = env.Command([ 'doc/api/html/index.html' ],
+                               [ 'doc/Doxyfile.api',
+                                 Glob('src/*.[ch]'),
+                                 Glob('include/*/*.h') ],
+                               [ '%s doc/Doxyfile.api' % dox ])
+        manpages = env.Command([ 'doc/man/man3/cmyth.h.3' ],
+                               [ 'doc/Doxyfile.man',
+                                 Glob('include/*/*.h') ],
+                               [ '%s doc/Doxyfile.man' % dox ])
+        doxygen = [ internal, external, manpages ]
+        env.Alias('doxygen', doxygen)
+        all += doxygen
     else:
         if not env.GetOption('clean'):
             env.cmd_not_found('doxygen')
@@ -216,12 +238,14 @@ env.Default(targets)
 # cleanup
 #
 if 'all' in COMMAND_LINE_TARGETS:
-    env.Clean(all, ['doc', 'cmyth.conf'])
+    env.Clean(all, ['doc/all', 'doc/api', 'doc/man', 'cmyth.conf'])
     env.Clean(all, [ 'config.log','.sconf_temp','.sconsign.dblite',
                      'xcode/build' ])
 if 'doxygen' in COMMAND_LINE_TARGETS:
-    env.Clean(all, ['doc'])
+    env.Clean(all, ['doc/all', 'doc/api', 'doc/man'])
 
 if not env.GetOption('clean'):
     vars.Save('cmyth.conf', env)
 
+env.Clean('distclean', [ '.sconsign.dblite', '.sconf_temp', 'config.log',
+                         'cmyth.conf' ])

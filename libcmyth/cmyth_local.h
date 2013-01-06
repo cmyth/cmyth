@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -15,6 +15,34 @@
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*! \mainpage cmyth
+ *
+ * cmyth is a library that provides a C language API to access and control
+ * a MythTV backend.  It is released under the LGPL 2.1.
+ *
+ * This document describes the internal and external implementation of
+ * libcmyth and librefmem.
+ *
+ * \section projectweb Project website
+ * http://cmyth.github.com/
+ *
+ * \section repos Source repository
+ * https://github.com/cmyth/cmyth
+ *
+ * \section libraries_internal Library Internals
+ * \li \link cmyth_local.h libcmyth \endlink
+ * \li \link refmem_local.h librefmem \endlink
+ *
+ * \section libraries_external Library APIs
+ * \li \link cmyth.h libcmyth \endlink
+ * \li \link refmem.h librefmem \endlink
+ *
+ * \section source Example Source Code
+ * \li \link mythcat.c mythcat \endlink
+ * \li \link mythfuse.c mythfuse \endlink
+ * \li \link mythping.c mythping \endlink
  */
 
 /**
@@ -108,23 +136,6 @@ struct cmyth_database {
 	MYSQL * mysql;
 };	
 #endif /* HAS_MYSQL */
-
-/* Sergio: Added to clean up channel list handling */
-struct cmyth_channel {
-	long chanid;
-	int channum;
-	char chanstr[10];
-	long cardids;/* A bit array of recorders/tuners supporting the channel */
-	char *callsign;
-	char *name;
-};
-
-struct cmyth_chanlist {
-	cmyth_channel_t chanlist_list;
-	int chanlist_sort_desc;
-	int chanlist_count;
-	int chanlist_alloc;
-};
 
 struct cmyth_recorder {
 	unsigned rec_have_stream;
