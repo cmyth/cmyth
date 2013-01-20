@@ -54,6 +54,8 @@ static myth_protomap_t protomap[] = {
 	{73, "D7FE8D6F"},
 	{74, "SingingPotato"},
 	{75, "SweetRock"},
+	{76, "FireWilde"},
+	{77, "WindMark"},
 	{0, ""}
 };
 
@@ -82,7 +84,7 @@ get_host_version(char *host)
 	 * Start the protocol negotiation by offering the highest version
 	 * that libcmyth supports.
 	 */
-	return 75;
+	return 77;
 }
 
 static void
