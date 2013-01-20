@@ -57,6 +57,65 @@ static myth_protomap_t protomap[] = {
 	{0, ""}
 };
 
+#define VERSION_CACHE_SIZE	8
+
+struct version_cache_s {
+	char *host;
+	unsigned int version;
+};
+
+static struct version_cache_s version_cache[VERSION_CACHE_SIZE];
+
+static unsigned int
+get_host_version(char *host)
+{
+	int i;
+
+	for (i=0; i<VERSION_CACHE_SIZE; i++) {
+		if ((version_cache[i].host != NULL) &&
+		    (strcmp(host, version_cache[i].host) == 0)) {
+			return version_cache[i].version;
+		}
+	}
+
+	/*
+	 * Start the protocol negotiation by offering the highest version
+	 * that libcmyth supports.
+	 */
+	return 75;
+}
+
+static void
+set_host_version(char *host, unsigned int version)
+{
+	int i;
+
+	for (i=0; i<VERSION_CACHE_SIZE; i++) {
+		if ((version_cache[i].host != NULL) &&
+		    (strcmp(host, version_cache[i].host) == 0)) {
+			version_cache[i].version = version;
+			return;
+		}
+	}
+
+	for (i=0; i<VERSION_CACHE_SIZE; i++) {
+		if (version_cache[i].host == NULL) {
+			version_cache[i].host = strdup(host);
+			version_cache[i].version = version;
+			return;
+		}
+	}
+
+	/* Evict a host at random */
+	i = rand() % VERSION_CACHE_SIZE;
+
+	if (version_cache[i].host) {
+		free(version_cache[i].host);
+	}
+	version_cache[i].host = strdup(host);
+	version_cache[i].version = version;
+}
+
 /*
  * cmyth_conn_destroy(cmyth_conn_t conn)
  * 
@@ -293,7 +352,7 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	ret->conn_buf = buf;
 	ret->conn_len = 0;
 	ret->conn_pos = 0;
-	ret->conn_version = 8;
+	ret->conn_version = get_host_version(server);
 	ret->conn_tcp_rcvbuf = tcp_rcvbuf;
 	return ret;
 
@@ -388,6 +447,8 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 	}
 	cmyth_dbg(CMYTH_DBG_PROTO, "%s: agreed on Version %ld protocol\n",
 		  __FUNCTION__, conn->conn_version);
+
+	set_host_version(server, conn->conn_version);
 
 	/*
 	 * Generate a unique hostname for event connections, since the server
