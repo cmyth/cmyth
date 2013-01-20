@@ -29,3 +29,5 @@ cmyth.conf
 xcode/build
 install
 win32/Debug
+librefmem/version.h
+libcmyth/version.h

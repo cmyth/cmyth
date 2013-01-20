@@ -26,7 +26,7 @@ def cmd_not_found(self, arg):
     print 'Error: %s not found!' % arg
     env.Exit(1)
 
-def shlibsuffix(self, major=-1, minor=-1, branch=-1):
+def shlibsuffix(self, major=-1, minor=-1, branch=-1, fork=-1):
     """Create the proper suffix for the shared library on the current OS."""
     if major == -1:
         if sys.platform == 'darwin':
@@ -43,23 +43,31 @@ def shlibsuffix(self, major=-1, minor=-1, branch=-1):
             return '-%d.%d.dylib' % (major, minor)
         else:
             return '.so.%d.%d' % (major, minor)
-    else:
+    elif fork == -1 or fork == 0:
         if sys.platform == 'darwin':
             return '-%d.%d.%d.dylib' % (major, minor, branch)
         else:
             return '.so.%d.%d.%d' % (major, minor, branch)
+    else:
+        if sys.platform == 'darwin':
+            return '-%d.%d.%d.%d.dylib' % (major, minor, branch, fork)
+        else:
+            return '.so.%d.%d.%d.%d' % (major, minor, branch, fork)
 
-def soname(self, name, major=0, minor=0, branch=0):
+def soname(self, name, major=0, minor=0, branch=0, fork=0):
     """Create the linker shared object argument for gcc for this OS."""
+    if fork > 0:
+        version = '%d.%d.%d.%d' % (major, minor, branch, fork)
+    else:
+        version = '%d.%d.%d' % (major, minor, branch)
     if sys.platform == 'darwin':
         return '-Wl,-headerpad_max_install_names,'\
-               '-undefined,dynamic_lookup,-compatibility_version,%d.%d.%d,'\
-               '-current_version,%d.%d.%d,-install_name,lib%s%s' % \
-               (major, minor, branch,
-                major, minor, branch,
-                name, self.shlibsuffix(major, minor, branch))
+               '-undefined,dynamic_lookup,-compatibility_version,%s,'\
+               '-current_version,%s,-install_name,lib%s%s' % \
+               (version, version, name,
+                self.shlibsuffix(major, minor, branch, fork))
     else:
-        return '-Wl,-soname,lib%s.so.%d.%d.%d' % (name, major, minor, branch)
+        return '-Wl,-soname,lib%s.so.%s' % (name, version)
 
 def build_shared(self):
     """Determine if shared objects should be built for this OS."""
@@ -67,6 +75,61 @@ def build_shared(self):
         return False
     else:
         return True
+
+def shared_library(env, target, source, **kw):
+    """Create a shared library and the symlinks pointing to it."""
+    version = kw['VERSION']
+    major = version[0]
+    minor = version[1]
+    branch = version[2]
+    fork = version[3]
+    kw['SHLIBSUFFIX'] = env.shlibsuffix(major, minor, branch, fork)
+    shared = env.SharedLibrary(target, source, **kw)
+    if fork == 0:
+        link0 = shared
+    else:
+        link0 = env.Symlink('lib%s%s' % (target, env.shlibsuffix(major, minor, branch)), shared)
+    link1 = env.Symlink('lib%s%s' % (target, env.shlibsuffix(major, minor)), link0)
+    link2 = env.Symlink('lib%s%s' % (target, env.shlibsuffix(major)), link1)
+    link3 = env.Symlink('lib%s%s' % (target, env.shlibsuffix()), link2)
+    return [ shared, link0, link1, link2, link3 ]
+
+def install_shared(env, target, source, **kw):
+    """Install a shared library and the symlinks pointing to it."""
+    name = kw['NAME']
+    version = kw['VERSION']
+    major = version[0]
+    minor = version[1]
+    branch = version[2]
+    fork = version[3]
+    lib = env.Install(prefix + '/lib', source[0])
+    if fork == 0:
+        lib0 = lib
+    else:
+        lib0 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                               env.shlibsuffix(major, minor, branch)), lib0)
+    lib1 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                           env.shlibsuffix(major, minor)), lib0)
+    lib2 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                           env.shlibsuffix(major)), lib1)
+    lib3 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
+                                           env.shlibsuffix()), lib2)
+    return [ lib, lib0, lib1, lib2, lib3 ]
+
+def gen_version(env, target, source=None, **kw):
+    version = kw['VERSION']
+    major = version[0]
+    minor = version[1]
+    branch = version[2]
+    fork = version[3]
+    path = os.path.dirname(Dir(target[0]).abspath) + '/' + target
+    f = open(path, 'w')
+    f.write('#define VERSION_MAJOR %d\n' % major)
+    f.write('#define VERSION_MINOR %d\n' % minor)
+    f.write('#define VERSION_BRANCH %d\n' % branch)
+    f.write('#define VERSION_FORK %d\n' % fork)
+    f.close()
+    return [ path ]
 
 #
 # Initialize the build environment
@@ -78,6 +141,9 @@ env.AddMethod(find_binary, 'find_binary')
 env.AddMethod(shlibsuffix, 'shlibsuffix')
 env.AddMethod(soname, 'soname')
 env.AddMethod(build_shared, 'build_shared')
+env.AddMethod(shared_library, 'CMSharedLibrary')
+env.AddMethod(install_shared, 'InstallShared')
+env.AddMethod(gen_version, 'GenVersion')
 
 vars = Variables('cmyth.conf')
 vars.Add('CC', '', 'gcc')

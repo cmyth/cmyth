@@ -10,48 +10,51 @@ prefix = env['PREFIX']
 
 name = 'cmyth'
 major = 0
-minor = 1
-branch = 4
+minor = 2
+branch = 0
+fork = 0
+
+version = [ major, minor, branch, fork ]
+
+libver = env.GenVersion('version.h',
+                        VERSION = version)
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'file.c', 'freespace.c', 'keyframe.c',
         'posmap.c', 'proginfo.c', 'proglist.c', 'rec_num.c', 
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
-        'livetv.c', 'commbreak.c' ]
+        'livetv.c', 'commbreak.c', 'version.c' ]
 
 if env['HAS_MYSQL'] == 'yes':
     src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
 
-linkflags = env.soname(name, major, minor, branch)
+linkflags = env.soname(name, major, minor, branch, fork)
 
 static = env.StaticLibrary(name, src,
                            LIBS = [],
                            LINKFLAGS = env['LDFLAGS'],
                            CPPPATH = [ '../include', '.' ])
 
-shared = env.SharedLibrary(name, src,
-                           SHLIBSUFFIX = env.shlibsuffix(major, minor, branch),
-                           LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
-                           LIBS = [],
-                           CPPPATH = [ '../include', '.' ])
-
-link0 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major, minor)), shared)
-link1 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major)), link0)
-link2 = env.Symlink('lib%s%s' % (name, env.shlibsuffix()), link1)
+shared = env.CMSharedLibrary(name, src,
+                             VERSION = version,
+                             LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
+                             LIBS = [],
+                             CPPPATH = [ '../include', '.' ])
 
 targets = [ static ]
 
 env.Install(prefix + '/lib', static)
 
 if env.build_shared():
-    targets += [ shared, link0, link1, link2 ]
+    targets += [ shared ]
 
-    lib0 = env.Install(prefix + '/lib', shared)
-    lib1 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                           env.shlibsuffix(major, minor)), lib0)
-    lib2 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                           env.shlibsuffix(major)), lib1)
-    lib3 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                           env.shlibsuffix()), lib2)
+    env.InstallShared(prefix + '/lib', shared,
+                      VERSION = version,
+                      NAME = name)
+
+env.Depends(src, libver)
+
+if env.GetOption('clean'):
+    env.Clean(targets, [ 'version.h' ])
 
 Return('targets')

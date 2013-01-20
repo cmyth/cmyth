@@ -50,6 +50,49 @@
 #define __CMYTH_H
 
 #include <time.h>
+#include <sys/time.h>
+
+#if defined(__GNUC__)
+#define CMYTH_DEPRECATED __attribute__ ((__deprecated__))
+#else
+#define CMYTH_DEPRECATED
+#endif
+
+/*
+ * -----------------------------------------------------------------
+ * Library version information
+ * -----------------------------------------------------------------
+ */
+
+/**
+ * Retrieve the major version number of the library.
+ * \returns The library major version number.
+ */
+extern int cmyth_version_major(void);
+
+/**
+ * Retrieve the minor version number of the library.
+ * \returns The library minor version number.
+ */
+extern int cmyth_version_minor(void);
+
+/**
+ * Retrieve the branch version number of the library.
+ * \returns The library branch version number.
+ */
+extern int cmyth_version_branch(void);
+
+/**
+ * Retrieve the fork version number of the library.
+ * \returns The library fork version number.
+ */
+extern int cmyth_version_fork(void);
+
+/**
+ * Retrieve the version number of the library.
+ * \returns The library version number string.
+ */
+extern const char* cmyth_version(void);
 
 /*
  * -----------------------------------------------------------------

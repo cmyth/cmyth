@@ -24,11 +24,37 @@
 #ifndef __REFMEM_H
 #define __REFMEM_H
 
-/*
- * -----------------------------------------------------------------
- * Types
- * -----------------------------------------------------------------
+#include <unistd.h>
+
+/**
+ * Retrieve the major version number of the library.
+ * \returns The library major version number.
  */
+extern int ref_version_major(void);
+
+/**
+ * Retrieve the minor version number of the library.
+ * \returns The library minor version number.
+ */
+extern int ref_version_minor(void);
+
+/**
+ * Retrieve the branch version number of the library.
+ * \returns The library branch version number.
+ */
+extern int ref_version_branch(void);
+
+/**
+ * Retrieve the fork version number of the library.
+ * \returns The library fork version number.
+ */
+extern int ref_version_fork(void);
+
+/**
+ * Retrieve the version number of the library.
+ * \returns The library version number string.
+ */
+extern const char* ref_version(void);
 
 /**
  * Return current number of references outstanding for everything.

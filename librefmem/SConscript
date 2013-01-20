@@ -11,39 +11,41 @@ prefix = env['PREFIX']
 name = 'refmem'
 major = 0
 minor = 1
-branch = 0
+branch = 1
+fork = 0
 
-src = [ 'alloc.c', 'debug.c' ]
+version = [ major, minor, branch, fork ]
 
-linkflags = env.soname(name, major, minor, branch)
+libver = env.GenVersion('version.h',
+                        VERSION = version)
+
+src = [ 'alloc.c', 'debug.c', 'version.c' ]
+
+linkflags = env.soname(name, major, minor, branch, fork)
 
 static = env.StaticLibrary(name, src,
                            LINKFLAGS = env['LDFLAGS'],
                            LIBS = [],
                            CPPPATH = [ '../include', '.' ])
-shared = env.SharedLibrary(name, src,
-                           SHLIBSUFFIX = env.shlibsuffix(major, minor, branch),
-                           LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
-                           LIBS = [],
-                           CPPPATH = [ '../include', '.' ])
-
-link0 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major, minor)), shared)
-link1 = env.Symlink('lib%s%s' % (name, env.shlibsuffix(major)), link0)
-link2 = env.Symlink('lib%s%s' % (name, env.shlibsuffix()), link1)
+shared = env.CMSharedLibrary(name, src,
+                             VERSION = version,
+                             LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
+                             LIBS = [],
+                             CPPPATH = [ '../include', '.' ])
 
 targets = [ static ]
 
 env.Install(prefix + '/lib', static)
 
 if env.build_shared():
-    targets += [ shared, link0, link1, link2 ]
+    targets += [ shared ]
+    env.InstallShared(prefix + '/lib', shared,
+                      VERSION = version,
+                      NAME = name)
 
-    lib0 = env.Install(prefix + '/lib', shared)
-    lib1 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                           env.shlibsuffix(major, minor)), lib0)
-    lib2 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                           env.shlibsuffix(major)), lib1)
-    lib3 = env.Symlink('%s/lib/lib%s%s' % (prefix, name,
-                                           env.shlibsuffix()), lib2)
+env.Depends(src, libver)
+
+if env.GetOption('clean'):
+    env.Clean(targets, [ 'version.h' ])
 
 Return('targets')

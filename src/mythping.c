@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2009-2010, Jon Gettler
+ *  Copyright (C) 2009-2013, Jon Gettler
  *  http://www.mvpmc.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -178,6 +178,9 @@ main(int argc, char **argv)
 	if (verbose) {
 		int version, count;
 		cmyth_proglist_t list;
+
+		printf("libcmyth version %s\n", cmyth_version());
+		printf("librefmem version %s\n", ref_version());
 
 		version = cmyth_conn_get_protocol_version(control);
 
