@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -389,7 +389,18 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 	cmyth_dbg(CMYTH_DBG_PROTO, "%s: agreed on Version %ld protocol\n",
 		  __FUNCTION__, conn->conn_version);
 
-	sprintf(announcement, "ANN Playback %s %d", my_hostname, event);
+	/*
+	 * Generate a unique hostname for event connections, since the server
+	 * will not send the same event multiple times to the same host.
+	 */
+	if (event) {
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s_%d_%p", my_hostname,
+			 getpid(), conn);
+		sprintf(announcement, "ANN Playback %s %d", buf, event);
+	} else {
+		sprintf(announcement, "ANN Playback %s 0", my_hostname);
+	}
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_send_message('%s') failed\n",

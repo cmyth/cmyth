@@ -22,11 +22,13 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include "cmyth/cmyth.h"
 #include "refmem/refmem.h"
 
 static cmyth_conn_t control;
+static cmyth_conn_t event;
 
 static struct option opts[] = {
 	{ "help", no_argument, 0, 'h' },
@@ -119,9 +121,6 @@ get_recordings(int level)
 			       cmyth_proginfo_length(prog));
 		}
 
-
-		printf("\n");
-
 		ref_release(channel);
 		ref_release(title);
 		ref_release(subtitle);
@@ -136,6 +135,33 @@ get_recordings(int level)
 	ref_release(episodes);
 
 	return count;
+}
+
+static int
+get_events(char *host)
+{
+	struct timeval tv;
+
+	if ((event=cmyth_conn_connect_event(host, 6543,
+					    16*1024, 4096)) == NULL) {
+		return -1;
+	}
+
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+
+	if (cmyth_event_select(event, &tv) > 0) {
+		cmyth_event_t e;
+		char data[128];
+
+		memset(data, 0, sizeof(data));
+
+		e = cmyth_event_get(event, data, sizeof(data));
+
+		printf("Event: %d '%s'\n", e, data);
+	}
+
+	return 0;
 }
 
 int
@@ -190,6 +216,8 @@ main(int argc, char **argv)
 		count = cmyth_proglist_get_count(list);
 
 		printf("\trecordings: %d\n", count);
+
+		get_events(server);
 
 		ref_release(list);
 	}

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2012, Jon Gettler
+ *  Copyright (C) 2005-2013, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -139,10 +139,14 @@ cmyth_event_get(cmyth_conn_t conn, char * data, int len)
 	} else if (strncmp(tmp, "UPDATE_FILE_SIZE", 16) == 0) {
 		event = CMYTH_EVENT_UPDATE_FILE_SIZE;
 		strncpy(data, tmp + 17, len);
+	} else if (strncmp(tmp, "COMMFLAG_START", 14) == 0) {
+		event = CMYTH_EVENT_COMMFLAG_START;
+		strncpy(data, tmp + 15, len);
 	} else {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: unknown mythtv BACKEND_MESSAGE '%s'\n", __FUNCTION__, tmp);
 		event = CMYTH_EVENT_UNKNOWN;
+		strncpy(data, tmp, len);
 	}
 
 	while(count > 0) {
@@ -154,7 +158,7 @@ cmyth_event_get(cmyth_conn_t conn, char * data, int len)
 	return event;
 
  fail:
-	return CMYTH_EVENT_UNKNOWN;
+	return CMYTH_EVENT_ERROR;
 }
 
 int
