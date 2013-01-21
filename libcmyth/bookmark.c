@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2009, Jon Gettler
+ *  Copyright (C) 2005-2013, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	}
 	sprintf(buf,"%s %ld %s","QUERY_BOOKMARK",prog->proginfo_chanId,
 		start_ts_dt);
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn,buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			"%s: cmyth_send_message() failed (%d)\n",
@@ -68,7 +68,7 @@ long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 
 	ret = ll;
    out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 	return ret;
 }
 	
@@ -98,7 +98,7 @@ int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog, long long bookm
 		sprintf(buf, "SET_BOOKMARK %ld %s %d %d", prog->proginfo_chanId,
 				start_ts_dt, (int32_t)(bookmark >> 32), (int32_t)(bookmark & 0xffffffff));
 	}
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn,buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			"%s: cmyth_send_message() failed (%d)\n",
@@ -116,6 +116,6 @@ int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog, long long bookm
 	}
 	ret = (strncmp(resultstr,"OK",2) == 0);
    out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 	return ret;
 }

@@ -32,8 +32,6 @@
 
 static char * cmyth_conn_get_setting_unlocked(cmyth_conn_t conn, const char* hostname, const char* setting);
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
 typedef struct {
 	unsigned int version;
 	char token[14]; // up to 13 chars used in v74 + the terminating NULL character
@@ -151,6 +149,7 @@ cmyth_conn_destroy(cmyth_conn_t conn)
 		shutdown(conn->conn_fd, SHUT_RDWR);
 		closesocket(conn->conn_fd);
 	}
+	pthread_mutex_destroy(&conn->conn_mutex);
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 }
 
@@ -356,6 +355,7 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	ret->conn_pos = 0;
 	ret->conn_version = get_host_version(server);
 	ret->conn_tcp_rcvbuf = tcp_rcvbuf;
+	pthread_mutex_init(&ret->conn_mutex, NULL);
 	return ret;
 
     shut:
@@ -985,7 +985,7 @@ cmyth_conn_get_recorder_from_num(cmyth_conn_t conn, int id)
 		return NULL;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 
 	if ((rec=cmyth_recorder_create()) == NULL)
 		goto fail;
@@ -1034,7 +1034,7 @@ cmyth_conn_get_recorder_from_num(cmyth_conn_t conn, int id)
 					conn->conn_tcp_rcvbuf) < 0)
 		goto fail;
 
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return rec;
 
@@ -1042,7 +1042,7 @@ cmyth_conn_get_recorder_from_num(cmyth_conn_t conn, int id)
 	if (rec)
 		ref_release(rec);
 
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return NULL;
 }
@@ -1080,7 +1080,7 @@ cmyth_conn_get_free_recorder(cmyth_conn_t conn)
 		return NULL;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 
 	if ((rec=cmyth_recorder_create()) == NULL)
 		goto fail;
@@ -1134,7 +1134,7 @@ cmyth_conn_get_free_recorder(cmyth_conn_t conn)
 					conn->conn_tcp_rcvbuf) < 0)
 		goto fail;
 
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return rec;
 
@@ -1142,7 +1142,7 @@ cmyth_conn_get_free_recorder(cmyth_conn_t conn)
 	if (rec)
 		ref_release(rec);
 
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return NULL;
 }
@@ -1163,7 +1163,7 @@ cmyth_conn_get_freespace(cmyth_conn_t control,
 	if ((total == NULL) || (used == NULL))
 		return -EINVAL;
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&control->conn_mutex);
 
 	if (control->conn_version >= 32)
 		{ snprintf(msg, sizeof(msg), "QUERY_FREE_SPACE_SUMMARY"); }
@@ -1233,7 +1233,7 @@ cmyth_conn_get_freespace(cmyth_conn_t control,
 		}
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&control->conn_mutex);
 
 	return ret;
 }
@@ -1274,7 +1274,7 @@ cmyth_conn_get_free_recorder_count(cmyth_conn_t conn)
 		return -1;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg), "GET_FREE_RECORDER_COUNT");
 	if ((err = cmyth_send_message(conn, msg)) < 0) {
@@ -1303,7 +1303,7 @@ cmyth_conn_get_free_recorder_count(cmyth_conn_t conn)
 	ret = c;
 
     err:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return ret;
 }
@@ -1372,9 +1372,9 @@ cmyth_conn_get_setting(cmyth_conn_t conn, const char* hostname, const char* sett
 {
 	char* result = NULL;
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 	result = cmyth_conn_get_setting_unlocked(conn, hostname, setting);
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return result;
 }
@@ -1398,7 +1398,7 @@ okay_command(cmyth_conn_t conn, char *msg, unsigned int min_version)
 		return -1;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 
 	if ((err = cmyth_send_message(conn, msg)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -1416,7 +1416,7 @@ okay_command(cmyth_conn_t conn, char *msg, unsigned int min_version)
 	}
 
 err:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 
 	return rc;
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006-2012, Sergio Slobodrian
+ *  Copyright (C) 2006-2013, Sergio Slobodrian
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -420,7 +420,7 @@ cmyth_livetv_chain_update(cmyth_recorder_t rec, char * chainid,
 	}
 
 	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	if(rec->rec_livetv_chain) {
 		if(strncmp(rec->rec_livetv_chain->chainid, chainid, strlen(chainid)) == 0) {
@@ -471,7 +471,7 @@ cmyth_livetv_chain_update(cmyth_recorder_t rec, char * chainid,
 
 	ref_release(loc_prog);
 	out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	return ret;
 }
@@ -516,7 +516,7 @@ cmyth_livetv_chain_setup(cmyth_recorder_t rec, int tcp_rcvbuf,
 	/* Get the current recording information */
 	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	sprintf(url, "myth://%s:%d%s",loc_prog->proginfo_hostname, rec->rec_port,
 					loc_prog->proginfo_pathname);
@@ -560,7 +560,7 @@ cmyth_livetv_chain_setup(cmyth_recorder_t rec, int tcp_rcvbuf,
 
 	ref_release(loc_prog);
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	return new_rec;
 }
@@ -703,7 +703,7 @@ cmyth_livetv_chain_switch_last(cmyth_recorder_t rec)
 	if(rec->rec_conn->conn_version < 26)
 		return 0;
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 	dir = rec->rec_livetv_chain->chain_ct
 			- rec->rec_livetv_chain->chain_current - 1;
 	if(dir != 0) {
@@ -712,7 +712,7 @@ cmyth_livetv_chain_switch_last(cmyth_recorder_t rec)
 	else {
 		rec->rec_livetv_chain->chain_switch_on_create=1;
 	}
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 	return 0;
 }
 
@@ -749,7 +749,7 @@ cmyth_livetv_chain_request_block(cmyth_recorder_t rec, unsigned long len)
 		return -EINVAL;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 #ifdef LIBCMYTH_READ_SINGLE_THREAD
 	if(len > (unsigned int)rec->rec_conn->conn_tcp_rcvbuf)
@@ -794,7 +794,7 @@ cmyth_livetv_chain_request_block(cmyth_recorder_t rec, unsigned long len)
 	ret = c;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s [%s:%d]: (trace) }\n",
 				__FUNCTION__, __FILE__, __LINE__);
@@ -844,7 +844,7 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 		if ((offset == 0) && (whence == SEEK_CUR))
 			return fp->file_pos;
 
-		pthread_mutex_lock(&mutex);
+		pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	/* Loop in case we need to jump forward or back in the chain */
 	do {
@@ -926,7 +926,7 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 	ret = fp->file_pos;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 	
 	return ret;
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund
+ *  Copyright (C) 2004-2013, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -174,7 +174,7 @@ cmyth_schedule_recording(cmyth_conn_t conn, char * msg)
 		return -1;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 
 	if ((err = cmyth_send_message(conn, msg)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -184,7 +184,7 @@ cmyth_schedule_recording(cmyth_conn_t conn, char * msg)
 
 	count = cmyth_rcv_length(conn);
 	cmyth_rcv_string(conn, &err, buf, sizeof(buf)-1,count);
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 	return err;
 }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund
+ *  Copyright (C) 2004-2013, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ cmyth_file_destroy(cmyth_file_t file)
 		return;
 	}
 	if (file->file_control) {
-		pthread_mutex_lock(&mutex);
+		pthread_mutex_lock(&file->file_control->conn_mutex);
 
 		/*
 		 * Try to shut down the file transfer.  Can't do much
@@ -75,7 +75,7 @@ cmyth_file_destroy(cmyth_file_t file)
 		}
 	    fail:
 		ref_release(file->file_control);
-		pthread_mutex_unlock(&mutex);
+		pthread_mutex_unlock(&file->file_control->conn_mutex);
 	}
 	if (file->closed_callback) {
 	    (file->closed_callback)(file);
@@ -343,7 +343,7 @@ cmyth_file_request_block(cmyth_file_t file, unsigned long len)
 		return -EINVAL;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&file->file_control->conn_mutex);
 
 #ifdef LIBCMYTH_READ_SINGLE_THREAD
 	if(len > (unsigned int)file->file_control->conn_tcp_rcvbuf)
@@ -381,7 +381,7 @@ cmyth_file_request_block(cmyth_file_t file, unsigned long len)
 	ret = c;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&file->file_control->conn_mutex);
 
 	return ret;
 }
@@ -423,7 +423,7 @@ cmyth_file_seek(cmyth_file_t file, long long offset, int whence)
 	if ((offset == 0) && (whence == SEEK_CUR))
 		return file->file_pos;
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&file->file_control->conn_mutex);
 
 	if (file->file_control->conn_version >= 66) {
 		/*
@@ -486,7 +486,7 @@ cmyth_file_seek(cmyth_file_t file, long long offset, int whence)
 	ret = file->file_pos;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&file->file_control->conn_mutex);
 	
 	return ret;
 }

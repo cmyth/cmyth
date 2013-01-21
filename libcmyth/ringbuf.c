@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund
+ *  Copyright (C) 2004-2013, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -145,7 +145,7 @@ cmyth_ringbuf_setup(cmyth_recorder_t rec)
 
 	control = rec->rec_conn;
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg),
 		 "QUERY_RECORDER %u[]:[]SETUP_RING_BUFFER[]:[]0",
@@ -240,7 +240,7 @@ cmyth_ringbuf_setup(cmyth_recorder_t rec)
 	new_rec->rec_ring->ringbuf_fill = fill;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	return new_rec;
 }
@@ -338,7 +338,7 @@ cmyth_ringbuf_request_block(cmyth_recorder_t rec, unsigned long len)
 		return -EINVAL;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 #ifdef LIBCMYTH_READ_SINGLE_THREAD
 	if(len > (unsigned int)rec->rec_conn->conn_tcp_rcvbuf)
@@ -370,7 +370,7 @@ cmyth_ringbuf_request_block(cmyth_recorder_t rec, unsigned long len)
 	ret = c;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	return ret;
 }
@@ -406,7 +406,7 @@ int cmyth_ringbuf_read(cmyth_recorder_t rec, char *buf, unsigned long len)
 		return -EINVAL;
 	}
 
-	pthread_mutex_lock (&mutex);
+	pthread_mutex_lock (&rec->rec_conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg),
 		 "QUERY_RECORDER %u[]:[]REQUEST_BLOCK_RINGBUF[]:[]%ld",
@@ -500,7 +500,7 @@ int cmyth_ringbuf_read(cmyth_recorder_t rec, char *buf, unsigned long len)
 
 	ret = end - buf;
 out:
-	pthread_mutex_unlock (&mutex);
+	pthread_mutex_unlock (&rec->rec_conn->conn_mutex);
 	return ret;
 }
 
@@ -546,7 +546,7 @@ cmyth_ringbuf_seek(cmyth_recorder_t rec,
 	if ((offset == 0) && (whence == SEEK_CUR))
 		return ring->file_pos;
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg),
 		 "QUERY_RECORDER %u[]:[]SEEK_RINGBUF[]:[]%d[]:[]%d[]:[]%d[]:[]%d[]:[]%d",
@@ -589,7 +589,7 @@ cmyth_ringbuf_seek(cmyth_recorder_t rec,
 	ret = ring->file_pos;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 	
 	return ret;
 }

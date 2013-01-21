@@ -110,7 +110,7 @@ cmyth_get_commbreaklist(cmyth_conn_t conn, cmyth_proginfo_t prog)
 
 	sprintf(buf,"%s %ld %i", "QUERY_COMMBREAK", prog->proginfo_chanId, 
 	        (int)cmyth_timestamp_to_unixtime(prog->proginfo_rec_start_ts));
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn, buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			"%s: cmyth_send_message() failed (%d)\n",
@@ -134,7 +134,7 @@ cmyth_get_commbreaklist(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	}
 
 	out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 	return breaklist;
 }
 
@@ -153,6 +153,8 @@ cmyth_get_cutlist(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	if (!buf) {
 		return breaklist;
 	}
+
+	pthread_mutex_lock(&conn->conn_mutex);
 
 	sprintf(buf,"%s %ld %i", "QUERY_CUTLIST", prog->proginfo_chanId, 
 	        (int)cmyth_timestamp_to_unixtime(prog->proginfo_rec_start_ts));
@@ -180,7 +182,7 @@ cmyth_get_cutlist(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	}
 
 	out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 	return breaklist;
 }
 
@@ -286,7 +288,7 @@ cmyth_mysql_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_prog
 	int r;
 
 	cmyth_timestamp_to_display_string(start_ts_dt, prog->proginfo_rec_start_ts, 0);
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&conn->conn_mutex);
 	if ((r=cmyth_mysql_get_commbreak_list(db, prog->proginfo_chanId, start_ts_dt, breaklist, conn->conn_version)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			"%s: cmyth_mysql_get_commbreak_list() failed (%d)\n",
@@ -301,7 +303,7 @@ cmyth_mysql_get_commbreaklist(cmyth_database_t db, cmyth_conn_t conn, cmyth_prog
 		breaklist->commbreak_count = 0;
 	}
 	out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&conn->conn_mutex);
 	return breaklist;
 }
 #endif /* HAS_MYSQL */

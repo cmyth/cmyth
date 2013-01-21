@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2010, Eric Lund
+ *  Copyright (C) 2004-2013, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -569,7 +569,7 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		sprintf(buf + strlen(buf), "%d[]:[]", prog->proginfo_year);
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&control->conn_mutex);
 
 	if ((err = cmyth_send_message(control, buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -589,7 +589,7 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	}
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&control->conn_mutex);
 
 	return ret;
 }
@@ -1500,7 +1500,7 @@ cmyth_proginfo_fill(cmyth_conn_t control, cmyth_proginfo_t prog)
 		return -EINVAL;
 	}
 
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&control->conn_mutex);
 
 	length = prog->proginfo_Length;
 	if ((ret=fill_command(control, prog, "FILL_PROGRAM_INFO") != 0))
@@ -1539,7 +1539,7 @@ cmyth_proginfo_fill(cmyth_conn_t control, cmyth_proginfo_t prog)
 	ret = 0;
 
     out:
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&control->conn_mutex);
 
 	return ret;
 }
@@ -1718,7 +1718,7 @@ cmyth_get_delete_list(cmyth_conn_t conn, char * msg, cmyth_proglist_t prog)
                 cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n", __FUNCTION__);
                 return -1;
         }
-        pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&conn->conn_mutex);
         if ((err = cmyth_send_message(conn, msg)) < 0) {
                 fprintf (stderr, "ERROR %d \n",err);
                 cmyth_dbg(CMYTH_DBG_ERROR,
@@ -1728,7 +1728,7 @@ cmyth_get_delete_list(cmyth_conn_t conn, char * msg, cmyth_proglist_t prog)
         count = cmyth_rcv_length(conn);
         cmyth_rcv_proglist(conn, &err, prog, count);
         prog_count=cmyth_proglist_get_count(prog);
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock(&conn->conn_mutex);
         return prog_count;
 }
 
