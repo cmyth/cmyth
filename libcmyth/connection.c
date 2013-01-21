@@ -1378,3 +1378,57 @@ cmyth_conn_get_setting(cmyth_conn_t conn, const char* hostname, const char* sett
 
 	return result;
 }
+
+static int
+okay_command(cmyth_conn_t conn, char *msg, unsigned int min_version)
+{
+	int err;
+	int rc = 0;
+
+	if (!conn) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
+			  __FUNCTION__);
+		return -1;
+	}
+
+	if (conn->conn_version < min_version) {
+		cmyth_dbg(CMYTH_DBG_ERROR,
+			  "%s: protocol version doesn't support %s\n",
+			  __FUNCTION__, msg);
+		return -1;
+	}
+
+	pthread_mutex_lock(&mutex);
+
+	if ((err = cmyth_send_message(conn, msg)) < 0) {
+		cmyth_dbg(CMYTH_DBG_ERROR,
+			  "%s: cmyth_send_message() failed (%d)\n",
+			  __FUNCTION__, err);
+		rc = -1;
+		goto err;
+	}
+
+	if (cmyth_rcv_okay(conn, "OK") < 0) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: cmyth_rcv_okay() failed\n",
+			  __FUNCTION__);
+		rc = -1;
+		goto err;
+	}
+
+err:
+	pthread_mutex_unlock(&mutex);
+
+	return rc;
+}
+
+int
+cmyth_conn_allow_shutdown(cmyth_conn_t conn)
+{
+	return okay_command(conn, "ALLOW_SHUTDOWN", 18);
+}
+
+int
+cmyth_conn_block_shutdown(cmyth_conn_t conn)
+{
+	return okay_command(conn, "BLOCK_SHUTDOWN", 18);
+}

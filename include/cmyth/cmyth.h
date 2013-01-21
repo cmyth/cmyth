@@ -449,6 +449,23 @@ extern int cmyth_conn_get_protocol_version(cmyth_conn_t conn);
 extern char * cmyth_conn_get_setting(cmyth_conn_t conn,
                const char* hostname, const char* setting);
 
+/**
+ * Inform the MythTV backend that a shutdown is allowed even though this
+ * connction is active.
+ * \param conn connection handle
+ * \retval 0 success
+ * \retval <0 error
+ */
+extern int cmyth_conn_allow_shutdown(cmyth_conn_t conn);
+
+/**
+ * Inform the MythTV backend that a shutdown is not allowed as long as this
+ * connction is active.
+ * \param conn connection handle
+ * \retval 0 success
+ * \retval <0 error
+ */
+extern int cmyth_conn_block_shutdown(cmyth_conn_t conn);
 /*
  * -----------------------------------------------------------------
  * Event Operations

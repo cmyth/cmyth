@@ -138,7 +138,7 @@ get_recordings(int level)
 }
 
 static int
-get_events(char *host)
+get_event(char *host)
 {
 	struct timeval tv;
 
@@ -201,6 +201,10 @@ main(int argc, char **argv)
 
 	printf("%s is alive.\n", server);
 
+	if (cmyth_conn_block_shutdown(control) < 0) {
+		printf("Failed to block backend shutdown!\n");
+	}
+
 	if (verbose) {
 		int version, count;
 		cmyth_proglist_t list;
@@ -217,13 +221,17 @@ main(int argc, char **argv)
 
 		printf("\trecordings: %d\n", count);
 
-		get_events(server);
+		get_event(server);
 
 		ref_release(list);
 	}
 
 	if (verbose > 1) {
 		get_recordings(verbose);
+	}
+
+	if (cmyth_conn_allow_shutdown(control) < 0) {
+		printf("Failed to allow backend shutdown!\n");
 	}
 
 	ref_release(control);
