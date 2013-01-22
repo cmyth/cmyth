@@ -74,10 +74,13 @@ get_recordings(int level)
 		char *description=NULL, *category=NULL, *recgroup=NULL;
 		char *pathname=NULL;
 		cmyth_proginfo_t prog;
+		int rec;
 
 		prog = cmyth_proglist_get_item(episodes, i);
 
 		title = cmyth_proginfo_title(prog);
+
+		rec = cmyth_proginfo_check_recording(control, prog);
 
 		if (level > 2) {
 			subtitle = cmyth_proginfo_subtitle(prog);
@@ -99,6 +102,10 @@ get_recordings(int level)
 		}
 		if (title) {
 			printf("\tTitle:           %s\n", title);
+			if (rec > 0) {
+				printf("\t                 RECORDING on %d\n",
+					rec);
+			}
 		}
 		if (subtitle) {
 			printf("\tSubtitle:        %s\n", subtitle);

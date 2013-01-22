@@ -779,6 +779,27 @@ extern int cmyth_proginfo_delete_recording(cmyth_conn_t control,
 					   cmyth_proginfo_t prog);
 
 /**
+ * Stop a currently recording program.
+ * \param control control handle
+ * \param prog program handle
+ * \retval <0 error
+ * \retval 0 success
+ */
+extern int cmyth_proginfo_stop_recording(cmyth_conn_t control,
+					 cmyth_proginfo_t prog);
+
+/**
+ * Check a program recording status.
+ * \param control control handle
+ * \param prog proginfo handle
+ * \retval <0 error
+ * \retval 0 not recording
+ * \retval >0 currently recording on this recorder number
+ */
+extern int cmyth_proginfo_check_recording(cmyth_conn_t control,
+					  cmyth_proginfo_t prog);
+
+/**
  * Delete a program such that it may be recorded again.
  * \param control backend control handle
  * \param prog proginfo handle
@@ -1740,20 +1761,6 @@ extern int cmyth_get_delete_list(cmyth_conn_t, char *, cmyth_proglist_t);
  * be implemented or removed.
  * @{
  */
-
-/**
- * \b Unimplemented.  Do not use.
- * \note This item may either be implemented or removed in the future.
- */
-extern int cmyth_proginfo_stop_recording(cmyth_conn_t control,
-					 cmyth_proginfo_t prog);
-
-/**
- * \b Unimplemented.  Do not use.
- * \note This item may either be implemented or removed in the future.
- */
-extern int cmyth_proginfo_check_recording(cmyth_conn_t control,
-					  cmyth_proginfo_t prog);
 
 typedef enum {
 	ADJ_DIRECTION_UP = 1,

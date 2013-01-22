@@ -360,56 +360,9 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	return ret;
 }
 
-/*
- * cmyth_proginfo_stop_recording(cmyth_conn_t control,
- *                               cmyth_proginfo_t prog)
- * 
- * Scope: PUBLIC
- *
- * Description
- *
- * Make a request on the control connection 'control' to ask the
- * MythTV back end to stop recording the program described in 'prog'.
- *
- * Return Value:
- *
- * Success: 0
- *
- * Failure: -(ERRNO)
- */
-int
-cmyth_proginfo_stop_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
-{
-	cmyth_dbg(CMYTH_DBG_DEBUG, "%s\n", __FUNCTION__);
-	return -ENOSYS;
-}
-
-/*
- * cmyth_proginfo_check_recording(cmyth_conn_t control,
- *                                cmyth_proginfo_t prog)
- * 
- * Scope: PUBLIC
- *
- * Description
- *
- * Make a request on the control connection 'control' to check the
- * existence of the program 'prog' on the MythTV back end.
- *
- * Return Value:
- *
- * Success: 1 - if the recording exists, 0 - if it does not
- *
- * Failure: -(ERRNO)
- */
-int
-cmyth_proginfo_check_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
-{
-	cmyth_dbg(CMYTH_DBG_DEBUG, "%s\n", __FUNCTION__);
-	return -ENOSYS;
-}
-
 static int
-delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
+proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
+		 long *result)
 {
 	long c = 0;
 	char *buf;
@@ -445,9 +398,15 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	len += strlen(prog->proginfo_playgroup);
 	len += strlen(prog->proginfo_seriesid);
 	len += strlen(prog->proginfo_programid);
-	len += strlen(prog->proginfo_inetref);
-	len += strlen(prog->proginfo_recpriority_2);
-	len += strlen(prog->proginfo_storagegroup);
+	if (prog->proginfo_inetref) {
+		len += strlen(prog->proginfo_inetref);
+	}
+	if (prog->proginfo_recpriority_2) {
+		len += strlen(prog->proginfo_recpriority_2);
+	}
+	if (prog->proginfo_storagegroup) {
+		len += strlen(prog->proginfo_storagegroup);
+	}
 
 	buf = alloca(len + 1+2048);
 	if (!buf) {
@@ -588,12 +547,67 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		goto out;
 	}
 
+	if (result) {
+		*result = c;
+	}
+
     out:
 	pthread_mutex_unlock(&control->conn_mutex);
 
 	return ret;
 }
 
+/*
+ * cmyth_proginfo_stop_recording(cmyth_conn_t control,
+ *                               cmyth_proginfo_t prog)
+ *
+ * Scope: PUBLIC
+ *
+ * Description
+ *
+ * Make a request on the control connection 'control' to ask the
+ * MythTV back end to stop recording the program described in 'prog'.
+ *
+ * Return Value:
+ *
+ * Success: 0
+ *
+ * Failure: -(ERRNO)
+ */
+int
+cmyth_proginfo_stop_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
+{
+	return proginfo_command(control, prog, "STOP_RECORDING", NULL);
+}
+
+/*
+ * cmyth_proginfo_check_recording(cmyth_conn_t control,
+ *                                cmyth_proginfo_t prog)
+ *
+ * Scope: PUBLIC
+ *
+ * Description
+ *
+ * Make a request on the control connection 'control' to check the
+ * recording status of the program 'prog' on the MythTV back end.
+ *
+ * Return Value:
+ *
+ * Success: 0 if not recording, >0 indicates the recorder number
+ *
+ * Failure: -(ERRNO)
+ */
+int
+cmyth_proginfo_check_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
+{
+	long result;
+
+	if (proginfo_command(control, prog, "CHECK_RECORDING", &result) == 0) {
+		return result;
+	} else {
+		return -1;
+	}
+}
 
 /*
  * cmyth_proginfo_delete_recording(cmyth_conn_t control,
@@ -615,7 +629,7 @@ delete_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 int
 cmyth_proginfo_delete_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
 {
-	return delete_command(control, prog, "DELETE_RECORDING");
+	return proginfo_command(control, prog, "DELETE_RECORDING", NULL);
 }
 
 /*
@@ -638,7 +652,7 @@ cmyth_proginfo_delete_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
 int
 cmyth_proginfo_forget_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
 {
-	return delete_command(control, prog, "FORGET_RECORDING");
+	return proginfo_command(control, prog, "FORGET_RECORDING", NULL);
 }
 
 /*
@@ -1327,9 +1341,15 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	len += strlen(prog->proginfo_playgroup);
 	len += strlen(prog->proginfo_seriesid);
 	len += strlen(prog->proginfo_programid);
-	len += strlen(prog->proginfo_inetref);
-	len += strlen(prog->proginfo_recpriority_2);
-	len += strlen(prog->proginfo_storagegroup);
+	if (prog->proginfo_inetref) {
+		len += strlen(prog->proginfo_inetref);
+	}
+	if (prog->proginfo_recpriority_2) {
+		len += strlen(prog->proginfo_recpriority_2);
+	}
+	if (prog->proginfo_storagegroup) {
+		len += strlen(prog->proginfo_storagegroup);
+	}
 
 	buf = alloca(len + 1+2048);
 	if (!buf) {
