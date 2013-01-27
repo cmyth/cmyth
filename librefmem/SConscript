@@ -11,7 +11,7 @@ prefix = env['PREFIX']
 name = 'refmem'
 major = 0
 minor = 1
-branch = 1
+branch = 2
 fork = 0
 
 version = [ major, minor, branch, fork ]

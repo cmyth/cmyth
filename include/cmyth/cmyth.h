@@ -399,6 +399,17 @@ extern cmyth_recorder_t cmyth_conn_get_recorder_from_num(cmyth_conn_t conn,
 							 int num);
 
 /**
+ * Obtain a recorder handle without actually connecting to it.  This can
+ * be useful for obtaining information about the recorder or about the
+ * programs it will be recording.  The handle cannot be used for a live TV
+ * session.
+ * \param conn connection handle
+ * \param num recorder number
+ * \return recorder handle
+ */
+extern cmyth_recorder_t cmyth_conn_get_recorder(cmyth_conn_t conn, int num);
+
+/**
  * Obtain the next available free recorder on a backend.
  * \param conn connection handle
  * \return recorder handle
@@ -466,6 +477,7 @@ extern int cmyth_conn_allow_shutdown(cmyth_conn_t conn);
  * \retval <0 error
  */
 extern int cmyth_conn_block_shutdown(cmyth_conn_t conn);
+
 /*
  * -----------------------------------------------------------------
  * Event Operations

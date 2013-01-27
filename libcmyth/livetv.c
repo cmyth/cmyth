@@ -150,6 +150,11 @@ cmyth_livetv_chain_create(char * chainid)
 int cmyth_livetv_chain_has_url(cmyth_recorder_t rec, char * url)
 {
 	int found, i;
+
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	found = 0;
 	if(rec->rec_livetv_chain) {
 		if(rec->rec_livetv_chain->chain_current != -1) {
@@ -205,6 +210,11 @@ cmyth_livetv_chain_add_file(cmyth_recorder_t rec, char * url, cmyth_file_t ft)
 	int ret = 0;
 	cmyth_file_t tmp;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
+
 	if(rec->rec_livetv_chain) {
 		if(rec->rec_livetv_chain->chain_current != -1) {
 			/* Is this file already in the chain? */
@@ -258,6 +268,10 @@ cmyth_livetv_chain_add_prog(cmyth_recorder_t rec, char * url,
 	int ret = 0;
 	cmyth_proginfo_t tmp;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	if(rec->rec_livetv_chain) {
 		if(rec->rec_livetv_chain->chain_current != -1) {
 			/* Is this file already in the chain? */
@@ -308,6 +322,10 @@ cmyth_livetv_chain_add_url(cmyth_recorder_t rec, char * url)
 	cmyth_file_t * fp;
 	cmyth_proginfo_t * pi;
 	int ret = 0;
+
+	if (!rec->rec_connected) {
+		return -1;
+	}
 
 	if(cmyth_livetv_chain_has_url(rec,url) == -1) {
 		if(rec->rec_livetv_chain->chain_current == -1) {
@@ -377,6 +395,10 @@ cmyth_livetv_chain_add(cmyth_recorder_t rec, char * url, cmyth_file_t ft,
 {
 	int ret = 0;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	if(cmyth_livetv_chain_has_url(rec, url) == -1)
 		ret = cmyth_livetv_chain_add_url(rec, url);
 	if(ret != -1)
@@ -414,9 +436,13 @@ cmyth_livetv_chain_update(cmyth_recorder_t rec, char * chainid,
 	cmyth_proginfo_t loc_prog;
 	cmyth_file_t ft;
 
-  if (!rec) {
+	if (!rec) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: rec is NULL\n", __FUNCTION__);
-		goto out;
+		return -1;
+	}
+
+	if (!rec->rec_connected) {
+		return -1;
 	}
 
 	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
@@ -513,6 +539,10 @@ cmyth_livetv_chain_setup(cmyth_recorder_t rec, int tcp_rcvbuf,
 		return NULL;
 	}
 
+	if (!rec->rec_connected) {
+		return NULL;
+	}
+
 	/* Get the current recording information */
 	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
 
@@ -589,6 +619,10 @@ cmyth_livetv_chain_get_block(cmyth_recorder_t rec, char *buf,
 	if (rec == NULL)
 		return -EINVAL;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	tv.tv_sec = 10;
 	tv.tv_usec = 0;
 	FD_ZERO(&fds);
@@ -620,6 +654,10 @@ cmyth_livetv_chain_select(cmyth_recorder_t rec, struct timeval *timeout)
 	if (rec == NULL)
 		return -EINVAL;
 
+
+	if (!rec->rec_connected) {
+		return -1;
+	}
 
 	fd = rec->rec_livetv_file->file_data->conn_fd;
 
@@ -661,6 +699,10 @@ cmyth_livetv_chain_switch(cmyth_recorder_t rec, int dir)
 {
 	int ret;
 
+	if (!rec->rec_connected) {
+		return 0;
+	}
+
 	ret = 0;
 
 	if(dir == LAST) {
@@ -691,6 +733,10 @@ cmyth_livetv_chain_switch_last(cmyth_recorder_t rec)
 	if (!rec) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: invalid args rec = %p\n",
 			  __FUNCTION__, rec);
+		return 0;
+	}
+
+	if (!rec->rec_connected) {
 		return 0;
 	}
 
@@ -747,6 +793,10 @@ cmyth_livetv_chain_request_block(cmyth_recorder_t rec, unsigned long len)
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
 			  __FUNCTION__);
 		return -EINVAL;
+	}
+
+	if (!rec->rec_connected) {
+		return -1;
 	}
 
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
@@ -838,6 +888,10 @@ cmyth_livetv_chain_seek(cmyth_recorder_t rec, long long offset, int whence)
 
 	if (rec == NULL)
 		return -EINVAL;
+
+	if (!rec->rec_connected) {
+		return -1;
+	}
 
 		fp = rec->rec_livetv_file;
 
@@ -958,6 +1012,10 @@ cmyth_livetv_seek(cmyth_recorder_t rec, long long offset, int whence)
 {
 	long long rtrn;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	if(rec->rec_conn->conn_version >= 26)
 		rtrn = cmyth_livetv_chain_seek(rec, offset, whence);
 	else
@@ -988,6 +1046,10 @@ cmyth_livetv_request_block(cmyth_recorder_t rec, unsigned long size)
 {
 	unsigned long rtrn;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	if(rec->rec_conn->conn_version >= 26)
 		rtrn = cmyth_livetv_chain_request_block(rec, size);
 	else
@@ -1001,6 +1063,10 @@ cmyth_livetv_select(cmyth_recorder_t rec, struct timeval *timeout)
 {
 	int rtrn;
 	
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	if(rec->rec_conn->conn_version >= 26)
 		rtrn = cmyth_livetv_chain_select(rec, timeout);
 	else
@@ -1024,6 +1090,10 @@ cmyth_livetv_get_block(cmyth_recorder_t rec, char *buf, unsigned long len)
 {
 	int rtrn;
 
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
 	if(rec->rec_conn->conn_version >= 26)
 		rtrn = cmyth_livetv_chain_get_block(rec, buf, len);
 	else
@@ -1039,6 +1109,10 @@ cmyth_spawn_live_tv(cmyth_recorder_t rec, unsigned buflen, int tcp_rcvbuf,
 {
 	cmyth_recorder_t rtrn = NULL;
 	int i;
+
+	if (!rec->rec_connected) {
+		return NULL;
+	}
 
 	if(rec->rec_conn->conn_version >= 26) {
 		if (cmyth_recorder_spawn_chain_livetv(rec) != 0) {

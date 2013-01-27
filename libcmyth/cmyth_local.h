@@ -146,6 +146,7 @@ struct cmyth_recorder {
 	cmyth_livetv_chain_t rec_livetv_chain;
 	cmyth_file_t rec_livetv_file;
 	double rec_framerate;
+	int rec_connected;
 };
 
 /**

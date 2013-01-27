@@ -145,6 +145,7 @@ cmyth_recorder_dup(cmyth_recorder_t old)
 	ret->rec_framerate = old->rec_framerate;
 	ret->rec_livetv_chain = ref_hold(old->rec_livetv_chain);
 	ret->rec_livetv_file = ref_hold(old->rec_livetv_file);
+	ret->rec_connected = old->rec_connected;
 
 	return ret;
 }
@@ -170,7 +171,7 @@ cmyth_recorder_is_recording(cmyth_recorder_t rec)
 {
 	int err, count;
 	int r;
-	long c, ret;
+	int ret;
 	char msg[256];
 
 	if (!rec) {
@@ -193,7 +194,8 @@ cmyth_recorder_is_recording(cmyth_recorder_t rec)
 	}
 
 	count = cmyth_rcv_length(rec->rec_conn);
-	if ((r=cmyth_rcv_long(rec->rec_conn, &err, &c, count)) < 0) {
+	if ((r=cmyth_rcv_string(rec->rec_conn, &err, msg, sizeof(msg),
+				count)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_rcv_length() failed (%d)\n",
 			  __FUNCTION__, r);
@@ -201,7 +203,12 @@ cmyth_recorder_is_recording(cmyth_recorder_t rec)
 		goto out;
 	}
 
-	ret = c;
+	if (strcmp(msg, "bad") == 0) {
+		ret = -1;
+		goto out;
+	}
+
+	ret = strtol(msg, NULL, 0);
 
     out:
 	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
@@ -487,6 +494,10 @@ cmyth_recorder_pause(cmyth_recorder_t rec)
 		return -EINVAL;
 	}
 
+	if (!rec->rec_connected) {
+		return -EINVAL;
+	}
+
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	sprintf(Buffer, "QUERY_RECORDER %ld[]:[]PAUSE", (long) rec->rec_id);
@@ -600,6 +611,10 @@ cmyth_recorder_change_channel(cmyth_recorder_t rec,
 		return -ENOSYS;
 	}
 
+	if (!rec->rec_connected) {
+		return -EINVAL;
+	}
+
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg),
@@ -665,6 +680,10 @@ cmyth_recorder_set_channel(cmyth_recorder_t rec, char *channame)
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no recorder connection\n",
 			  __FUNCTION__);
 		return -ENOSYS;
+	}
+
+	if (!rec->rec_connected) {
+		return -EINVAL;
 	}
 
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
@@ -1323,6 +1342,10 @@ cmyth_recorder_spawn_livetv(cmyth_recorder_t rec)
 		return -ENOSYS;
 	}
 
+	if (!rec->rec_connected) {
+		return -EINVAL;
+	}
+
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg), "QUERY_RECORDER %d[]:[]SPAWN_LIVETV",
@@ -1366,6 +1389,10 @@ cmyth_recorder_spawn_chain_livetv(cmyth_recorder_t rec)
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no recorder connection\n",
 			  __FUNCTION__);
 		return -ENOSYS;
+	}
+
+	if (!rec->rec_connected) {
+		return -EINVAL;
 	}
 
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
@@ -1431,6 +1458,10 @@ cmyth_recorder_stop_livetv(cmyth_recorder_t rec)
 		return -ENOSYS;
 	}
 
+	if (!rec->rec_connected) {
+		return -EINVAL;
+	}
+
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
 	snprintf(msg, sizeof(msg), "QUERY_RECORDER %d[]:[]STOP_LIVETV",
@@ -1469,6 +1500,10 @@ cmyth_recorder_done_ringbuf(cmyth_recorder_t rec)
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no recorder connection\n",
 			  __FUNCTION__);
 		return -ENOSYS;
+	}
+
+	if (!rec->rec_connected) {
+		return -EINVAL;
 	}
 
 	if(rec->rec_conn->conn_version >= 26)
@@ -1553,6 +1588,10 @@ cmyth_recorder_get_filename(cmyth_recorder_t rec)
 	if (!rec) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no recorder connection\n",
 			  __FUNCTION__);
+		return NULL;
+	}
+
+	if (!rec->rec_connected) {
 		return NULL;
 	}
 

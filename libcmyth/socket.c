@@ -2351,13 +2351,22 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	 * Get Year
 	 */
 	if (buf->proginfo_version >= 43) {
-		consumed = cmyth_rcv_ushort(conn, err, &buf->proginfo_year,
-						count);
-		count -= consumed;
-		total += consumed;
-		if (*err) {
-			failed = "cmyth_rcv_ushort proginfo_year";
-			goto fail;
+		/*
+		 * On my system, the year is missing from the scheduled
+		 * recordings list on the last program.  In this case, just
+		 * assume the rest of the program list is fine.
+		 */
+		if (count == 0) {
+			buf->proginfo_year = 0;
+		} else {
+			consumed = cmyth_rcv_ushort(conn, err,
+						    &buf->proginfo_year, count);
+			count -= consumed;
+			total += consumed;
+			if (*err) {
+				failed = "cmyth_rcv_ushort proginfo_year";
+				goto fail;
+			}
 		}
 	}
 

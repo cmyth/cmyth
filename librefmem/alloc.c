@@ -140,6 +140,12 @@ int ref_get_refcount(char *loc)
 	return(total_refcount);
 }
 
+void ref_get_usage(unsigned int *refs, unsigned int *bytes)
+{
+	*refs = total_refcount;
+	*bytes = total_bytecount;
+}
+
 #if defined(DEBUG)
 static inline void
 ref_remove(refcounter_t *ref)

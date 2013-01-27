@@ -28,10 +28,13 @@
 #include "refmem/refmem.h"
 
 static cmyth_conn_t control;
-static cmyth_conn_t event;
 
 static struct option opts[] = {
 	{ "help", no_argument, 0, 'h' },
+	{ "episodes", no_argument, 0, 'e' },
+	{ "recorder", no_argument, 0, 'r' },
+	{ "scheduled", no_argument, 0, 's' },
+	{ "upcoming", no_argument, 0, 'u' },
 	{ "verbose", no_argument, 0, 'v' },
 	{ 0, 0, 0, 0 }
 };
@@ -39,7 +42,13 @@ static struct option opts[] = {
 static void
 print_help(char *prog)
 {
-	printf("Usage: %s [-v] <backend>\n", prog);
+	printf("Usage: %s [options] <backend>\n", prog);
+	printf("       --help       -h    print this help\n");
+	printf("       --episodes   -e    list recorded episodes\n");
+	printf("       --recorder   -r    list recorder information\n");
+	printf("       --scheduled  -s    list scheduled recordings\n");
+	printf("       --upcoming   -u    list upcoming recordings\n");
+	printf("       --verbose    -v    verbose output\n");
 }
 
 static int
@@ -55,12 +64,9 @@ is_alive(char *host)
 }
 
 static int
-get_recordings(int level)
+show_proglist(cmyth_proglist_t episodes, int level, int show_card)
 {
-	cmyth_proglist_t episodes;
 	int count, i;
-
-	episodes = cmyth_proglist_get_all_recorded(control);
 
 	if (episodes == NULL) {
 		return -1;
@@ -103,8 +109,14 @@ get_recordings(int level)
 		if (title) {
 			printf("\tTitle:           %s\n", title);
 			if (rec > 0) {
-				printf("\t                 RECORDING on %d\n",
-					rec);
+				cmyth_timestamp_t end;
+				char str[32];
+
+				end = cmyth_proginfo_rec_end(prog);
+				cmyth_timestamp_to_string(str, end);
+
+				printf("\t                 RECORDING on %d until %s\n",
+				       rec, str);
 			}
 		}
 		if (subtitle) {
@@ -128,6 +140,16 @@ get_recordings(int level)
 			       cmyth_proginfo_length(prog));
 		}
 
+		if (level > 1 && show_card) {
+			long card = cmyth_proginfo_card_id(prog);
+
+			if (card == 0) {
+				printf("\tRecorder:        will not record\n");
+			} else {
+				printf("\tRecorder:        %ld\n", card);
+			}
+		}
+
 		ref_release(channel);
 		ref_release(title);
 		ref_release(subtitle);
@@ -148,6 +170,7 @@ static int
 get_event(char *host)
 {
 	struct timeval tv;
+	cmyth_conn_t event;
 
 	if ((event=cmyth_conn_connect_event(host, 6543,
 					    16*1024, 4096)) == NULL) {
@@ -168,7 +191,97 @@ get_event(char *host)
 		printf("Event: %d '%s'\n", e, data);
 	}
 
+	ref_release(event);
+
 	return 0;
+}
+
+static int
+get_recorders(int level)
+{
+	int i;
+
+	for (i=0; i<=32; i++) {
+		cmyth_recorder_t rec;
+		int state;
+
+		rec = cmyth_conn_get_recorder(control, i);
+
+		if (rec == NULL) {
+			continue;
+		}
+
+		state = cmyth_recorder_is_recording(rec);
+
+		if (state == 0) {
+			printf("Recorder %d is idle\n", i);
+		} else if (state == 1) {
+			cmyth_proginfo_t prog;
+			cmyth_timestamp_t end;
+			char str[32];
+			char *title;
+
+			prog = cmyth_recorder_get_cur_proginfo(rec);
+
+			end = cmyth_proginfo_rec_end(prog);
+			cmyth_timestamp_to_string(str, end);
+
+			printf("Recorder %d is recording until %s\n", i, str);
+
+			if (prog && (level > 0)) {
+				title = cmyth_proginfo_title(prog);
+				if (title) {
+					printf("\tTitle:           %s\n",
+					       title);
+				}
+				ref_release(title);
+			}
+
+			ref_release(prog);
+		} else {
+			printf("Recorder %d is in an unknown state\n", i);
+		}
+
+		ref_release(rec);
+	}
+
+	return 0;
+}
+
+static int
+get_recordings(int level)
+{
+	cmyth_proglist_t list;
+
+	list = cmyth_proglist_get_all_recorded(control);
+
+	printf("Recorded episodes:\n");
+
+	return show_proglist(list, level, 0);
+}
+
+static int
+get_scheduled(int level)
+{
+	cmyth_proglist_t list;
+
+	list = cmyth_proglist_get_all_scheduled(control);
+
+	printf("Scheduled recordings:\n");
+
+	return show_proglist(list, level, 0);
+}
+
+static int
+get_upcoming(int level)
+{
+	cmyth_proglist_t list;
+
+	list = cmyth_proglist_get_all_pending(control);
+
+	printf("Upcoming recordings:\n");
+
+	return show_proglist(list, level, 1);
 }
 
 int
@@ -176,13 +289,26 @@ main(int argc, char **argv)
 {
 	int c, opt_index;
 	int verbose = 0;
+	int opt_e = 0, opt_r = 0, opt_s = 0, opt_u = 0;
 	char *server;
 
-	while ((c=getopt_long(argc, argv, "hv", opts, &opt_index)) != -1) {
+	while ((c=getopt_long(argc, argv, "hersuv", opts, &opt_index)) != -1) {
 		switch (c) {
 		case 'h':
 			print_help(argv[0]);
 			exit(0);
+			break;
+		case 'e':
+			opt_e = 1;
+			break;
+		case 'r':
+			opt_r = 1;
+			break;
+		case 's':
+			opt_s = 1;
+			break;
+		case 'u':
+			opt_u = 1;
 			break;
 		case 'v':
 			verbose++;
@@ -233,8 +359,20 @@ main(int argc, char **argv)
 		ref_release(list);
 	}
 
-	if (verbose > 1) {
+	if (opt_e) {
 		get_recordings(verbose);
+	}
+
+	if (opt_r) {
+		get_recorders(verbose);
+	}
+
+	if (opt_s) {
+		get_scheduled(verbose);
+	}
+
+	if (opt_u) {
+		get_upcoming(verbose);
 	}
 
 	if (cmyth_conn_allow_shutdown(control) < 0) {
@@ -242,6 +380,15 @@ main(int argc, char **argv)
 	}
 
 	ref_release(control);
+
+	if (verbose > 1) {
+		unsigned int refs, bytes;
+
+		ref_get_usage(&refs, &bytes);
+
+		printf("Refmem: refs  %d\n", refs);
+		printf("Refmem: bytes %d\n", bytes);
+	}
 
 	return 0;
 }

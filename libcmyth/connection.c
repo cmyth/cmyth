@@ -1029,12 +1029,53 @@ cmyth_conn_get_recorder_from_num(cmyth_conn_t conn, int id)
 	rec->rec_id = id;
 	rec->rec_server = ref_strdup(reply);
 	rec->rec_port = port;
+	rec->rec_connected = 1;
 
 	if (cmyth_conn_connect_recorder(rec, conn->conn_buflen,
 					conn->conn_tcp_rcvbuf) < 0)
 		goto fail;
 
 	pthread_mutex_unlock(&conn->conn_mutex);
+
+	return rec;
+
+    fail:
+	if (rec)
+		ref_release(rec);
+
+	pthread_mutex_unlock(&conn->conn_mutex);
+
+	return NULL;
+}
+
+cmyth_recorder_t
+cmyth_conn_get_recorder(cmyth_conn_t conn, int num)
+{
+	cmyth_recorder_t rec = NULL;
+
+	if (!conn) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
+			  __FUNCTION__);
+		return NULL;
+	}
+
+	pthread_mutex_lock(&conn->conn_mutex);
+
+	if ((rec=cmyth_recorder_create()) == NULL)
+		goto fail;
+
+	rec->rec_id = num;
+	rec->rec_server = NULL;
+	rec->rec_port = 0;
+	rec->rec_conn = ref_hold(conn);
+	rec->rec_connected = 0;
+
+	pthread_mutex_unlock(&conn->conn_mutex);
+
+	if (cmyth_recorder_is_recording(rec) < 0) {
+		ref_release(rec);
+		rec = NULL;
+	}
 
 	return rec;
 
@@ -1129,6 +1170,7 @@ cmyth_conn_get_free_recorder(cmyth_conn_t conn)
 	rec->rec_id = id;
 	rec->rec_server = ref_strdup(reply);
 	rec->rec_port = port;
+	rec->rec_connected = 1;
 
 	if (cmyth_conn_connect_recorder(rec, conn->conn_buflen,
 					conn->conn_tcp_rcvbuf) < 0)
