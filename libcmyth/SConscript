@@ -11,7 +11,7 @@ prefix = env['PREFIX']
 name = 'cmyth'
 major = 0
 minor = 2
-branch = 1
+branch = 2
 fork = 0
 
 version = [ major, minor, branch, fork ]
@@ -23,7 +23,7 @@ src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'file.c', 'freespace.c', 'keyframe.c',
         'posmap.c', 'proginfo.c', 'proglist.c', 'rec_num.c', 
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
-        'livetv.c', 'commbreak.c', 'version.c' ]
+        'livetv.c', 'commbreak.c', 'version.c', 'chanlist.c', 'channel.c' ]
 
 if env['HAS_MYSQL'] == 'yes':
     src += [ 'mythtv_mysql.c', 'mysql_query.c' ]

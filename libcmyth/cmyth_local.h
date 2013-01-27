@@ -135,6 +135,20 @@ struct cmyth_database {
 };	
 #endif /* HAS_MYSQL */
 
+struct cmyth_channel {
+	long channel_id;
+	char *channel_name;
+	char *channel_sign;
+	char *channel_string;
+	char *channel_icon;
+};
+
+struct cmyth_chanlist {
+	cmyth_channel_t *chanlist_list;
+	long chanlist_count;
+	long chanlist_max;
+};
+
 struct cmyth_recorder {
 	unsigned rec_have_stream;
 	unsigned rec_id;
@@ -147,6 +161,7 @@ struct cmyth_recorder {
 	cmyth_file_t rec_livetv_file;
 	double rec_framerate;
 	int rec_connected;
+	cmyth_chanlist_t rec_chanlist;
 };
 
 /**
@@ -439,6 +454,19 @@ extern char * cmyth_mysql_query_string(cmyth_mysql_query_t * query);
 extern MYSQL_RES * cmyth_mysql_query_result(cmyth_mysql_query_t * query);
 #endif /* HAS_MYSQL */
 
+/*
+ * From chanlist.c
+ */
 
+extern int cmyth_recorder_add_chanlist(cmyth_recorder_t rec);
+extern cmyth_chanlist_t cmyth_chanlist_create(void);
+extern int cmyth_chanlist_add(cmyth_chanlist_t list, cmyth_channel_t channel);
+
+/*
+ * From channel.c
+ */
+
+extern cmyth_channel_t cmyth_channel_create(long id, char *name, char *sign,
+					    char *string, char *icon);
 
 #endif /* __CMYTH_LOCAL_H */

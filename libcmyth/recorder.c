@@ -72,6 +72,9 @@ cmyth_recorder_destroy(cmyth_recorder_t rec)
 	if (rec->rec_livetv_file) {
 		ref_release(rec->rec_livetv_file);
 	}
+	if (rec->rec_chanlist) {
+		ref_release(rec->rec_chanlist);
+	}
 
 }
 
@@ -706,10 +709,11 @@ cmyth_recorder_set_channel(cmyth_recorder_t rec, char *channame)
 		goto fail;
 	}
 
-	if(rec->rec_ring)
+	if (rec->rec_ring) {
 		rec->rec_ring->file_pos = 0;
-	else
+	} else if (rec->rec_livetv_file) {
 		rec->rec_livetv_file->file_pos = 0;
+	}
 
 	ret = 0;
 
@@ -1172,9 +1176,6 @@ cmyth_recorder_get_next_program_info(cmyth_recorder_t rec,
 	
 	next_prog->proginfo_chanId = atoi(chanid);
 
-	ref_hold(next_prog->proginfo_start_ts);
-	ref_hold(next_prog->proginfo_end_ts);
-
 	ret = 0;
  
     out:
@@ -1616,4 +1617,86 @@ cmyth_recorder_get_recorder_id(cmyth_recorder_t rec)
 	}
 
 	return rec->rec_id;
+}
+
+int
+cmyth_recorder_add_chanlist(cmyth_recorder_t rec)
+{
+	cmyth_proginfo_t zero, first, prog;
+	char *first_name;
+	cmyth_chanlist_t list;
+	cmyth_channel_t channel;
+
+	/*
+	 * Get a list of channels for the recorder by cycling through the
+	 * current program guide.  For some reason, the first proginfo
+	 * structure retrieved seems to be empty, so just ignore it.
+	 */
+
+	zero = cmyth_recorder_get_cur_proginfo(rec);
+
+	if (zero == NULL) {
+		return -1;
+	}
+
+	first = cmyth_recorder_get_next_proginfo(rec, zero,
+						 BROWSE_DIRECTION_UP);
+
+	ref_release(zero);
+
+	first_name = cmyth_proginfo_channame(first);
+
+	prog = ref_hold(first);
+
+	list = cmyth_chanlist_create();
+
+	while (1) {
+		cmyth_proginfo_t prev = prog;
+		char *name, *sign, *icon;
+		char buf[128];
+
+		prog = cmyth_recorder_get_next_proginfo(rec, prev,
+							BROWSE_DIRECTION_UP);
+
+		if (prog == NULL) {
+			break;
+		}
+
+		name = cmyth_proginfo_channame(prog);
+		sign = cmyth_proginfo_chansign(prog);
+
+		snprintf(buf, sizeof(buf), "%s %s", name, sign);
+
+		icon = cmyth_proginfo_chanicon(prog);
+		channel = cmyth_channel_create(prog->proginfo_chanId,
+					       name, sign, buf, icon);
+
+		cmyth_chanlist_add(list, channel);
+
+		ref_release(channel);
+		ref_release(sign);
+		ref_release(icon);
+		ref_release(prev);
+
+		if (strcmp(first_name, name) == 0) {
+			ref_release(name);
+			break;
+		}
+
+		ref_release(name);
+	}
+
+	rec->rec_chanlist = list;
+
+	ref_release(first_name);
+	ref_release(first);
+	ref_release(prog);
+
+	return 0;
+}
+
+cmyth_chanlist_t
+cmyth_recorder_get_chanlist(cmyth_recorder_t rec)
+{
+	return ref_hold(rec->rec_chanlist);
 }

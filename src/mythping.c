@@ -117,6 +117,8 @@ show_proglist(cmyth_proglist_t episodes, int level, int show_card)
 
 				printf("\t                 RECORDING on %d until %s\n",
 				       rec, str);
+
+				ref_release(end);
 			}
 		}
 		if (subtitle) {
@@ -199,7 +201,7 @@ get_event(char *host)
 static int
 get_recorders(int level)
 {
-	int i;
+	int i, j;
 
 	for (i=0; i<=32; i++) {
 		cmyth_recorder_t rec;
@@ -238,8 +240,27 @@ get_recorders(int level)
 			}
 
 			ref_release(prog);
+			ref_release(end);
 		} else {
 			printf("Recorder %d is in an unknown state\n", i);
+		}
+
+		if (level > 1) {
+			cmyth_chanlist_t cl;
+			cmyth_channel_t chan;
+			char *name;
+
+			cl = cmyth_recorder_get_chanlist(rec);
+
+			for (j=0; j<cmyth_chanlist_get_count(cl); j++) {
+				chan = cmyth_chanlist_get_item(cl, j);
+				name = cmyth_channel_string(chan);
+				printf("\tChannel: %s\n", name);
+				ref_release(name);
+				ref_release(chan);
+			}
+
+			ref_release(cl);
 		}
 
 		ref_release(rec);
@@ -388,6 +409,10 @@ main(int argc, char **argv)
 
 		printf("Refmem: refs  %d\n", refs);
 		printf("Refmem: bytes %d\n", bytes);
+
+		if (refs > 0) {
+			ref_alloc_show();
+		}
 	}
 
 	return 0;

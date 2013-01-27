@@ -35,7 +35,13 @@ mythcat = env.Program('mythcat', 'mythcat.c',
                       LIBS = libs,
                       LIBPATH = [ '../libcmyth', '../librefmem' ])
 
-targets += [ mythping, mythcat ]
+mythlive = env.Program('mythlive', 'mythlive.c',
+                       LINKFLAGS = env['LDFLAGS'],
+                       CPPPATH = [ '../include' ],
+                       LIBS = libs,
+                       LIBPATH = [ '../libcmyth', '../librefmem' ])
+
+targets += [ mythping, mythcat, mythlive ]
 
 env.Install(prefix + '/bin', targets)
 

@@ -15,6 +15,7 @@
 .project
 src/mythcat
 src/mythfuse
+src/mythlive
 src/mythping
 .sconf_temp
 config.log

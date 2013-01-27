@@ -100,6 +100,8 @@ extern const char* cmyth_version(void);
  * -----------------------------------------------------------------
  */
 
+struct cmyth_chanlist;
+struct cmyth_channel;
 struct cmyth_conn;
 struct cmyth_commbreak;
 struct cmyth_commbreaklist;
@@ -115,6 +117,18 @@ struct cmyth_timestamp;
  * Opaque structure pointer types
  * -----------------------------------------------------------------
  */
+
+/**
+ * \typedef cmyth_chanlist_t
+ * A list of recorder channels.
+ */
+typedef struct cmyth_chanlist *cmyth_chanlist_t;
+
+/**
+ * \typedef cmyth_channel_t
+ * A channel information structure for a single channel on a recorder.
+ */
+typedef struct cmyth_channel *cmyth_channel_t;
 
 /**
  * \typedef cmyth_conn_t
@@ -624,6 +638,76 @@ extern int cmyth_recorder_stop_livetv(cmyth_recorder_t rec);
  */
 extern int cmyth_recorder_get_recorder_id(cmyth_recorder_t rec);
 
+/**
+ * Retrieve the channel list for a specified recorder.
+ * \param rec recorder handle
+ * \return channel list handle
+ */
+extern cmyth_chanlist_t cmyth_recorder_get_chanlist(cmyth_recorder_t rec);
+
+/*
+ * -----------------------------------------------------------------
+ * Channel List Operations
+ * -----------------------------------------------------------------
+ */
+
+/**
+ * Retrieve the number of channels in the list.
+ * \param list channel list handle
+ * \retval <0 error
+ * \retval >=0 number of channels in the list
+ */
+extern int cmyth_chanlist_get_count(cmyth_chanlist_t list);
+
+/**
+ * Retrieve a channel from a channel list.
+ * \param list channel list handle
+ * \param index list entry to retrieve
+ * \returns channel handle
+ */
+extern cmyth_channel_t cmyth_chanlist_get_item(cmyth_chanlist_t list,
+					       unsigned int index);
+/*
+ * -----------------------------------------------------------------
+ * Channel Operations
+ * -----------------------------------------------------------------
+ */
+
+/**
+ * Retrieve the channel ID.
+ * \param chan channel handle
+ * \returns channel ID
+ */
+extern long cmyth_channel_id(cmyth_channel_t chan);
+
+/**
+ * Retrieve the channel name.
+ * \param chan channel handle
+ * \returns reference counted channel name
+ */
+extern char* cmyth_channel_name(cmyth_channel_t chan);
+
+/**
+ * Retrieve the channel sign.
+ * \param chan channel handle
+ * \returns reference counted channel sign
+ */
+extern char* cmyth_channel_sign(cmyth_channel_t chan);
+
+/**
+ * Retrieve the channel string.
+ * \param chan channel handle
+ * \returns reference counted channel string
+ */
+extern char* cmyth_channel_string(cmyth_channel_t chan);
+
+/**
+ * Retrieve the channel icon.
+ * \param chan channel handle
+ * \returns reference counted channel icon
+ */
+extern char* cmyth_channel_icon(cmyth_channel_t chan);
+
 /*
  * -----------------------------------------------------------------
  * Live TV Operations
@@ -641,6 +725,22 @@ extern cmyth_recorder_t cmyth_spawn_live_tv(cmyth_recorder_t rec,
 					    int tcp_rcvbuf,
 					    void (*prog_update_callback)(cmyth_proginfo_t),
 					    char ** err);
+
+/**
+ * Start recording live TV on a recorder.
+ * \param rec recorder handle
+ * \retval <0 error
+ * \retval 0 success
+ */
+extern int cmyth_livetv_start(cmyth_recorder_t rec);
+
+/**
+ * Stop recording live TV on a recorder.
+ * \param rec recorder handle
+ * \retval <0 error
+ * \retval 0 success
+ */
+extern int cmyth_livetv_stop(cmyth_recorder_t rec);
 
 /**
  * Block waiting for data on a live TV stream.
@@ -682,6 +782,25 @@ extern long long cmyth_livetv_seek(cmyth_recorder_t rec,
  */
 extern int cmyth_livetv_get_block(cmyth_recorder_t rec, char *buf,
                                   unsigned long len);
+
+/**
+ * Request that the recorder change the channel being recorded for live TV.
+ * \param rec recorder handle
+ * \param direction direction in which to change channel
+ * \retval 0 success
+ * \retval <0 error
+ */
+extern int cmyth_livetv_change_channel(cmyth_recorder_t rec,
+				       cmyth_channeldir_t direction);
+
+/**
+ * Request that the recorder change the channel being recorded for live TV.
+ * \param rec recorder handle
+ * \param direction direction in which to change channel
+ * \retval 0 success
+ * \retval <0 error
+ */
+extern int cmyth_livetv_set_channel(cmyth_recorder_t rec, char *name);
 
 /*
  * -----------------------------------------------------------------

@@ -1037,6 +1037,11 @@ cmyth_conn_get_recorder_from_num(cmyth_conn_t conn, int id)
 
 	pthread_mutex_unlock(&conn->conn_mutex);
 
+	if (cmyth_recorder_add_chanlist(rec) < 0) {
+		ref_release(rec);
+		rec = NULL;
+	}
+
 	return rec;
 
     fail:
@@ -1073,6 +1078,11 @@ cmyth_conn_get_recorder(cmyth_conn_t conn, int num)
 	pthread_mutex_unlock(&conn->conn_mutex);
 
 	if (cmyth_recorder_is_recording(rec) < 0) {
+		ref_release(rec);
+		rec = NULL;
+	}
+
+	if (cmyth_recorder_add_chanlist(rec) < 0) {
 		ref_release(rec);
 		rec = NULL;
 	}
@@ -1177,6 +1187,11 @@ cmyth_conn_get_free_recorder(cmyth_conn_t conn)
 		goto fail;
 
 	pthread_mutex_unlock(&conn->conn_mutex);
+
+	if (cmyth_recorder_add_chanlist(rec) < 0) {
+		ref_release(rec);
+		rec = NULL;
+	}
 
 	return rec;
 

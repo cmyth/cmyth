@@ -716,8 +716,9 @@ cmyth_livetv_chain_switch(cmyth_recorder_t rec, int dir)
 		ref_release(rec->rec_livetv_file);
 		ret = rec->rec_livetv_chain->chain_current += dir;
 		rec->rec_livetv_file = ref_hold(rec->rec_livetv_chain->chain_files[ret]);
-		rec->rec_livetv_chain
-					->prog_update_callback(rec->rec_livetv_chain->progs[ret]);
+		if (rec->rec_livetv_chain->prog_update_callback != NULL) {
+			rec->rec_livetv_chain->prog_update_callback(rec->rec_livetv_chain->progs[ret]);
+		}
 		ret = 1;
 	}
 
@@ -1155,3 +1156,181 @@ cmyth_spawn_live_tv(cmyth_recorder_t rec, unsigned buflen, int tcp_rcvbuf,
 	return rtrn;
 }
 
+static int
+cmyth_livetv_chain_start(cmyth_recorder_t rec)
+{
+	char url[1024];
+	cmyth_proginfo_t loc_prog;
+	cmyth_file_t ft;
+	int rc = -1;
+
+	if (!rec) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no recorder connection\n",
+			  __FUNCTION__);
+		return -1;
+	}
+
+	if (!rec->rec_connected) {
+		return -1;
+	}
+
+	/* XXX: wait for the recording to start...? */
+	sleep(1);
+
+	/* Get the current recording information */
+	loc_prog = cmyth_recorder_get_cur_proginfo(rec);
+
+	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
+
+	snprintf(url, sizeof(url), "myth://%s:%d%s",
+		 loc_prog->proginfo_hostname, rec->rec_port,
+		 loc_prog->proginfo_pathname);
+
+	if(rec->rec_livetv_chain == NULL) {
+		cmyth_dbg(CMYTH_DBG_DEBUG, "%s: error no livetv_chain\n",
+			  __FUNCTION__);
+		goto out;
+	}
+
+	if(cmyth_livetv_chain_has_url(rec, url) == -1) {
+		ft = cmyth_conn_connect_file(loc_prog, rec->rec_conn,
+					     128*1024, 128*1024);
+		if (!ft) {
+			cmyth_dbg(CMYTH_DBG_ERROR,
+				  "%s: cmyth_conn_connect_file(%s) failed\n",
+				  __FUNCTION__, url);
+			goto out;
+		}
+		if (cmyth_livetv_chain_add(rec, url, ft, loc_prog) == -1) {
+			cmyth_dbg(CMYTH_DBG_ERROR,
+				  "%s: cmyth_livetv_chain_add(%s) failed\n",
+				  __FUNCTION__, url);
+			goto out;
+		}
+		rec->rec_livetv_chain->prog_update_callback = NULL;
+		ref_release(ft);
+		cmyth_livetv_chain_switch(rec, 0);
+	}
+
+	ref_release(loc_prog);
+
+	rc = 0;
+
+    out:
+	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
+
+	return rc;
+}
+
+int
+cmyth_livetv_start(cmyth_recorder_t rec)
+{
+	int rc = -1;
+	int i;
+
+	if (!rec || !rec->rec_connected) {
+		return -1;
+	}
+
+	if(rec->rec_conn->conn_version >= 26) {
+		if (cmyth_recorder_spawn_chain_livetv(rec) != 0) {
+			return -1;
+		}
+
+		if (cmyth_livetv_chain_start(rec) != 0) {
+			return -1;
+		}
+
+		for(i=0; i<20; i++) {
+			if(cmyth_recorder_is_recording(rec) != 1) {
+				sleep(1);
+			} else {
+				break;
+			}
+		}
+
+		rc = 0;
+	}
+
+	return rc;
+}
+
+int
+cmyth_livetv_stop(cmyth_recorder_t rec)
+{
+	if (!rec || !rec->rec_connected) {
+		return -1;
+	}
+
+	return cmyth_recorder_stop_livetv(rec);
+}
+
+int
+cmyth_livetv_change_channel(cmyth_recorder_t rec, cmyth_channeldir_t direction)
+{
+	int rc = -1;
+
+	if (!rec || !rec->rec_connected) {
+		return -1;
+	}
+
+	if(rec->rec_conn->conn_version >= 26) {
+		char *chainid;
+
+		cmyth_recorder_pause(rec);
+
+		if (cmyth_recorder_change_channel(rec, direction) < 0) {
+			return -1;
+		}
+
+		chainid = rec->rec_livetv_chain->chainid;
+
+		cmyth_livetv_chain_switch_last(rec);
+
+		/* XXX: why do we need to pause here...? */
+		sleep(1);
+
+		if (cmyth_livetv_chain_update(rec, chainid, 128*1024) < 0) {
+			return -1;
+		}
+
+		rc = 0;
+	}
+
+	return rc;
+}
+
+int
+cmyth_livetv_set_channel(cmyth_recorder_t rec, char *name)
+{
+	int rc;
+
+	if (!rec || !rec->rec_connected) {
+		return -1;
+	}
+
+	if(rec->rec_conn->conn_version >= 26) {
+		char *chainid;
+
+		cmyth_recorder_pause(rec);
+
+		if (cmyth_recorder_set_channel(rec, name) < 0) {
+			return -1;
+		}
+
+		chainid = rec->rec_livetv_chain->chainid;
+
+		cmyth_livetv_chain_switch_last(rec);
+
+		/* XXX: why do we need to pause here...? */
+		sleep(1);
+
+		if (cmyth_livetv_chain_update(rec, chainid, 128*1024) < 0) {
+			return -1;
+		}
+
+		rc = 0;
+	}
+
+	return rc;
+}
