@@ -377,7 +377,9 @@ cmyth_file_request_block(cmyth_file_t file, unsigned long len)
 		goto out;
 	}
 
-	file->file_pos += c;
+	if (c > 0) {
+		file->file_pos += c;
+	}
 	ret = c;
 
     out:

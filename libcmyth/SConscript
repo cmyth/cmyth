@@ -11,7 +11,7 @@ prefix = env['PREFIX']
 name = 'cmyth'
 major = 0
 minor = 2
-branch = 2
+branch = 3
 fork = 0
 
 version = [ major, minor, branch, fork ]
@@ -19,26 +19,30 @@ version = [ major, minor, branch, fork ]
 libver = env.GenVersion('version.h',
                         VERSION = version)
 
+libs = [ 'refmem' ]
+
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
         'file.c', 'freespace.c', 'keyframe.c',
         'posmap.c', 'proginfo.c', 'proglist.c', 'rec_num.c', 
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
-        'livetv.c', 'commbreak.c', 'version.c', 'chanlist.c', 'channel.c' ]
+        'livetv.c', 'commbreak.c', 'version.c', 'chanlist.c', 'channel.c',
+        'chain.c' ]
 
 if env['HAS_MYSQL'] == 'yes':
+    libs += [ 'mysqlclient' ]
     src += [ 'mythtv_mysql.c', 'mysql_query.c' ]
 
 linkflags = env.soname(name, major, minor, branch, fork)
 
 static = env.StaticLibrary(name, src,
-                           LIBS = [],
+                           LIBS = libs,
                            LINKFLAGS = env['LDFLAGS'],
                            CPPPATH = [ '../include', '.' ])
 
 shared = env.CMSharedLibrary(name, src,
                              VERSION = version,
                              LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
-                             LIBS = [],
+                             LIBS = libs,
                              CPPPATH = [ '../include', '.' ])
 
 targets = [ static ]

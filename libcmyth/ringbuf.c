@@ -593,3 +593,9 @@ cmyth_ringbuf_seek(cmyth_recorder_t rec,
 	
 	return ret;
 }
+
+cmyth_file_t
+cmyth_ringbuf_file(cmyth_recorder_t rec)
+{
+	return ref_hold(rec->rec_ring);
+}

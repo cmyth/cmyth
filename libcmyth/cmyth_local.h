@@ -135,6 +135,27 @@ struct cmyth_database {
 };	
 #endif /* HAS_MYSQL */
 
+typedef struct cmyth_chain_entry {
+	cmyth_proginfo_t prog;
+	cmyth_file_t file;
+	long long offset;
+} *cmyth_chain_entry_t ;
+
+struct cmyth_chain {
+	char *chain_id;
+	unsigned int chain_count;
+	int chain_current;
+	cmyth_chain_entry_t *chain_list;
+	void (*chain_callback)(cmyth_proginfo_t prog);
+	pthread_mutex_t chain_mutex;
+	pthread_cond_t chain_cond;
+	pthread_t chain_thread;
+	cmyth_conn_t chain_event;
+	cmyth_conn_t chain_conn;
+	void *chain_thread_args;
+	cmyth_recorder_t chain_thread_rec;
+};
+
 struct cmyth_channel {
 	long channel_id;
 	char *channel_name;
@@ -156,12 +177,9 @@ struct cmyth_recorder {
 	int rec_port;
 	cmyth_ringbuf_t rec_ring;
 	cmyth_conn_t rec_conn;
-	/* Sergio: Added to support new livetv protocol */
-	cmyth_livetv_chain_t rec_livetv_chain;
-	cmyth_file_t rec_livetv_file;
-	double rec_framerate;
 	int rec_connected;
 	cmyth_chanlist_t rec_chanlist;
+	cmyth_chain_t rec_chain;
 };
 
 /**
@@ -468,5 +486,19 @@ extern int cmyth_chanlist_add(cmyth_chanlist_t list, cmyth_channel_t channel);
 
 extern cmyth_channel_t cmyth_channel_create(long id, char *name, char *sign,
 					    char *string, char *icon);
+
+extern cmyth_file_t cmyth_ringbuf_file(cmyth_recorder_t rec);
+
+extern cmyth_file_t cmyth_livetv_current_file(cmyth_recorder_t rec);
+
+extern cmyth_chain_t cmyth_chain_create(cmyth_recorder_t rec, char *chain_id);
+
+extern cmyth_file_t cmyth_chain_current_file(cmyth_chain_t chain);
+
+extern void cmyth_chain_lock(cmyth_chain_t chain);
+
+extern void cmyth_chain_unlock(cmyth_chain_t chain);
+
+extern void cmyth_chain_add_wait(cmyth_chain_t chain);
 
 #endif /* __CMYTH_LOCAL_H */

@@ -145,10 +145,12 @@ env.AddMethod(shared_library, 'CMSharedLibrary')
 env.AddMethod(install_shared, 'InstallShared')
 env.AddMethod(gen_version, 'GenVersion')
 
+cflags = '-Wall -Wextra -Werror -Wno-unused-parameter'
+
 vars = Variables('cmyth.conf')
 vars.Add('CC', '', 'gcc')
 vars.Add('LD', '', 'ld')
-vars.Add('CFLAGS', '', '-Wall -Wextra -Werror -Wno-unused-parameter')
+vars.Add('CFLAGS', '', cflags)
 vars.Add('LDFLAGS', '', '')
 vars.Add('HAS_MYSQL', '', '')
 
@@ -161,7 +163,8 @@ if 'LD' in os.environ:
     env.Replace(CC = os.environ['LD'])
 
 if 'CFLAGS' in os.environ:
-    env.Replace(CFLAGS = os.environ['CFLAGS'])
+    cflags = os.environ['CFLAGS']
+    env.Replace(CFLAGS = cflags)
 
 if 'LDFLAGS' in os.environ:
     env.Replace(LDFLAGS = os.environ['LDFLAGS'])
@@ -171,6 +174,9 @@ if 'CROSS' in os.environ:
     env.Append(CROSS = cross)
     env.Replace(CC = cross + 'gcc')
     env.Replace(LD = cross + 'ld')
+
+if 'DEBUG' in os.environ:
+    env.Replace(CFLAGS = cflags + ' -g -DDEBUG')
 
 if 'NO_MYSQL' in os.environ:
     env.Replace(HAS_MYSQL = 'no')
