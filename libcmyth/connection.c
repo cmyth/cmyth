@@ -149,6 +149,10 @@ cmyth_conn_destroy(cmyth_conn_t conn)
 		shutdown(conn->conn_fd, SHUT_RDWR);
 		closesocket(conn->conn_fd);
 	}
+	if (conn->conn_server) {
+		ref_release(conn->conn_server);
+		conn->conn_server = NULL;
+	}
 	pthread_mutex_destroy(&conn->conn_mutex);
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 }
@@ -187,6 +191,8 @@ cmyth_conn_create(void)
 	ret->conn_buflen = 0;
 	ret->conn_pos = 0;
 	ret->conn_hang = 0;
+	ret->conn_port = 0;
+	ret->conn_server = NULL;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 }
@@ -355,6 +361,8 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	ret->conn_pos = 0;
 	ret->conn_version = get_host_version(server);
 	ret->conn_tcp_rcvbuf = tcp_rcvbuf;
+	ret->conn_server = ref_strdup(server);
+	ret->conn_port = port;
 	pthread_mutex_init(&ret->conn_mutex, NULL);
 	return ret;
 
@@ -526,6 +534,14 @@ cmyth_conn_connect_ctrl(char *server, unsigned short port, unsigned buflen,
 		  "%s: done connecting control connection ret = %p\n",
 		  __FUNCTION__, ret);
 	return ret;
+}
+
+cmyth_conn_t
+cmyth_conn_reconnect(cmyth_conn_t conn)
+{
+	return cmyth_conn_connect_ctrl(conn->conn_server, conn->conn_port,
+				       conn->conn_buflen,
+				       conn->conn_tcp_rcvbuf);
 }
 
 cmyth_conn_t

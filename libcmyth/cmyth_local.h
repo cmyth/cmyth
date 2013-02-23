@@ -110,6 +110,8 @@ struct cmyth_conn {
 	volatile int	conn_hang;	/**< is connection stuck? */
 	int		conn_tcp_rcvbuf;/**< TCP receive buffer size */
 	pthread_mutex_t conn_mutex;
+	int		conn_port;
+	char		*conn_server;
 };
 
 /* Sergio: Added to support new livetv protocol */

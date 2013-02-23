@@ -448,11 +448,76 @@ cmyth_livetv_get_block(cmyth_recorder_t rec, char *buf, unsigned long len)
 	return rtrn;
 }
 
+/*
+ * cmyth_livetv_wait()
+ *
+ * After starting live TV or after a channel change wait here until some
+ * recording data is available.
+ */
+static int
+cmyth_livetv_wait(cmyth_recorder_t rec)
+{
+	int i = 0, rc = -1;
+	cmyth_conn_t conn;
+	static int failures = 0;
+
+	usleep(250000*failures);
+
+	conn = cmyth_conn_reconnect(rec->rec_conn);
+
+	while (i++ < 10) {
+		int len;
+		cmyth_proginfo_t prog;
+		cmyth_file_t file;
+
+		if (!cmyth_recorder_is_recording(rec)) {
+			usleep(1000);
+			continue;
+		}
+
+		prog = cmyth_recorder_get_cur_proginfo(rec);
+
+		if (prog == NULL) {
+			usleep(1000);
+			continue;
+		}
+
+		file = cmyth_conn_connect_file(prog, conn, 4096, 4096);
+
+		ref_release(prog);
+
+		if (file == NULL) {
+			if (failures < 4) {
+				failures++;
+			}
+			usleep(1000);
+			continue;
+		}
+
+		len = cmyth_file_request_block(file, 512);
+
+		ref_release(file);
+
+		if (len == 512) {
+			rc = 0;
+			break;
+		}
+
+		if (failures < 4) {
+			failures++;
+		}
+		usleep(1000);
+	}
+
+	ref_release(conn);
+
+	return rc;
+}
+
 int
 cmyth_livetv_start(cmyth_recorder_t rec)
 {
 	int rc = -1;
-	int i;
 
 	if (!rec || !rec->rec_connected) {
 		return -1;
@@ -463,18 +528,7 @@ cmyth_livetv_start(cmyth_recorder_t rec)
 			return -1;
 		}
 
-		/* XXX: why do we need to pause here...? */
-		sleep(1);
-
-		for(i=0; i<20; i++) {
-			if(cmyth_recorder_is_recording(rec) != 1) {
-				sleep(1);
-			} else {
-				break;
-			}
-		}
-
-		rc = 0;
+		rc = cmyth_livetv_wait(rec);
 	}
 
 	return rc;
@@ -506,12 +560,11 @@ cmyth_livetv_change_channel(cmyth_recorder_t rec, cmyth_channeldir_t direction)
 			return -1;
 		}
 
-		/* XXX: why do we need to pause here...? */
-		sleep(1);
+		rc = cmyth_livetv_wait(rec);
 
-		cmyth_chain_switch_last(rec->rec_chain);
-
-		rc = 0;
+		if (rc == 0) {
+			cmyth_chain_switch_last(rec->rec_chain);
+		}
 	} else {
 		/* XXX: ringbuf code? */
 	}
@@ -535,12 +588,11 @@ cmyth_livetv_set_channel(cmyth_recorder_t rec, char *name)
 			return -1;
 		}
 
-		/* XXX: why do we need to pause here...? */
-		sleep(1);
+		rc = cmyth_livetv_wait(rec);
 
-		cmyth_chain_switch_last(rec->rec_chain);
-
-		rc = 0;
+		if (rc == 0) {
+			cmyth_chain_switch_last(rec->rec_chain);
+		}
 	} else {
 		/* XXX: ringbuf code? */
 	}

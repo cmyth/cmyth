@@ -338,6 +338,13 @@ extern cmyth_conn_t cmyth_conn_connect_ctrl(char *server,
 					    unsigned buflen, int tcp_rcvbuf);
 
 /**
+ * Create a new control connection based off an existing one.
+ * \param conn control handle
+ * \return control handle
+ */
+extern cmyth_conn_t cmyth_conn_reconnect(cmyth_conn_t conn);
+
+/**
  * Create an event connection to a backend.
  * \param server server hostname or ip address
  * \param port port number to connect on

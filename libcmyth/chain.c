@@ -446,6 +446,11 @@ cmyth_chain_update(cmyth_chain_t chain, cmyth_recorder_t rec, char *msg)
 	}
 
 	path = cmyth_proginfo_pathname(prog);
+
+	if (path == NULL) {
+		return;
+	}
+
 	if (strlen(path) == 0) {
 		ref_release(path);
 		ref_release(prog);
