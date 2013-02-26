@@ -67,7 +67,7 @@ cmyth_file_destroy(cmyth_file_t file)
 			goto fail;
 		}
 
-		if ((err=cmyth_rcv_okay(file->file_control, "ok")) < 0) {
+		if ((err=cmyth_rcv_okay(file->file_control)) < 0) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: cmyth_rcv_okay() failed (%d)\n",
 				  __FUNCTION__, err);
@@ -275,17 +275,40 @@ cmyth_file_get_block(cmyth_file_t file, char *buf, unsigned long len)
 	if (file == NULL || file->file_data == NULL)
 		return -EINVAL;
 
-	tv.tv_sec = 10;
-	tv.tv_usec = 0;
-	FD_ZERO(&fds);
-	FD_SET(file->file_data->conn_fd, &fds);
-	if (select(file->file_data->conn_fd+1, NULL, &fds, NULL, &tv) == 0) {
-		file->file_data->conn_hang = 1;
-		return 0;
-	} else {
-		file->file_data->conn_hang = 0;
+	while (1) {
+		int rc;
+
+		tv.tv_sec = 10;
+		tv.tv_usec = 0;
+		FD_ZERO(&fds);
+		FD_SET(file->file_data->conn_fd, &fds);
+		rc = select(file->file_data->conn_fd+1, NULL, &fds, NULL, &tv);
+
+		if (rc == 0) {
+			file->file_data->conn_hang = 1;
+			return 0;
+		} else if (rc < 0) {
+			if (errno == EINTR) {
+				continue;
+			} else {
+				return -errno;
+			}
+		} else {
+			file->file_data->conn_hang = 0;
+		}
+
+		rc = recv(file->file_data->conn_fd, buf, len, 0);
+
+		if (rc < 0) {
+			if (errno == EINTR) {
+				continue;
+			} else {
+				return -errno;
+			}
+		}
+
+		return rc;
 	}
-	return recv(file->file_data->conn_fd, buf, len, 0);
 }
 
 int

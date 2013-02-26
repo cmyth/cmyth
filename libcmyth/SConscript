@@ -11,7 +11,7 @@ prefix = env['PREFIX']
 name = 'cmyth'
 major = 0
 minor = 2
-branch = 4
+branch = 5
 fork = 0
 
 version = [ major, minor, branch, fork ]
