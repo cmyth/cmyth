@@ -241,6 +241,8 @@ src = SConscript('src/SConscript')
 
 targets = [ cmyth, refmem, src ]
 
+env.Depends(cmyth, refmem)
+
 #
 # install targets
 #

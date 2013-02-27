@@ -37,12 +37,14 @@ linkflags = env.soname(name, major, minor, branch, fork)
 static = env.StaticLibrary(name, src,
                            LIBS = libs,
                            LINKFLAGS = env['LDFLAGS'],
+                           LIBPATH = '../librefmem',
                            CPPPATH = [ '../include', '.' ])
 
 shared = env.CMSharedLibrary(name, src,
                              VERSION = version,
                              LINKFLAGS = linkflags + ' ' + env['LDFLAGS'],
                              LIBS = libs,
+                             LIBPATH = '../librefmem',
                              CPPPATH = [ '../include', '.' ])
 
 targets = [ static ]
