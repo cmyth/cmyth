@@ -66,6 +66,30 @@ struct version_cache_s {
 
 static struct version_cache_s version_cache[VERSION_CACHE_SIZE];
 
+#ifdef _MSC_VER
+/*
+ * shameless rip from:
+ * http://memset.wordpress.com/2010/10/09/inet_ntop-for-win32/
+ */
+static const char *
+inet_ntop(int af, const void* src, char* dst, int cnt)
+{
+	struct sockaddr_in srcaddr;
+
+	memset(&srcaddr, 0, sizeof(struct sockaddr_in));
+	memcpy(&(srcaddr.sin_addr), src, sizeof(srcaddr.sin_addr));
+
+	srcaddr.sin_family = af;
+	if (WSAAddressToString((struct sockaddr*) &srcaddr,
+			       sizeof(struct sockaddr_in), 0, dst,
+			       (LPDWORD) &cnt) != 0) {
+		return NULL;
+	}
+
+	return dst;
+}
+#endif /* _MSC_VER */
+
 static unsigned int
 get_host_version(char *host)
 {
@@ -238,8 +262,7 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	      int tcp_rcvbuf)
 {
 	cmyth_conn_t ret = NULL;
-	struct hostent *host;
-	struct sockaddr_in addr;
+	struct sockaddr_storage addr;
 	unsigned char *buf = NULL;
 	cmyth_socket_t fd;
 #ifndef _MSC_VER
@@ -248,32 +271,56 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 #endif
 	int temp;
 	socklen_t size;
+	struct addrinfo hints;
+	struct addrinfo *res;
+	struct addrinfo *cur;
+	char dest[INET6_ADDRSTRLEN];
 
 	/*
 	 * First try to establish the connection with the server.
 	 * If this fails, we are going no further.
 	 */
-	host = gethostbyname(server);
-	if (!host) {
+	memset(&addr, 0, sizeof(addr));
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	if (getaddrinfo(server, NULL, &hints, &res)) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cannot resolve hostname '%s'\n",
 			  __FUNCTION__, server);
 		return NULL;
 	}
-	if (host->h_addrtype != AF_INET) {
-		/*
-		 * For now, this should only be IPv4, perhaps later I can
-		 * branch out...
-		 */
+	for (cur = res; cur; cur = cur->ai_next) {
+		if (cur->ai_family == AF_INET) {
+			((struct sockaddr_in *)cur->ai_addr)->sin_port =
+				htons(port);
+			inet_ntop(AF_INET,
+				  &((struct sockaddr_in *)cur->ai_addr)->sin_addr,
+				  dest, sizeof(dest));
+			memcpy(&addr, cur->ai_addr,
+                               sizeof(struct sockaddr_in));
+			temp = PF_INET;
+			break;
+		}
+		if (cur->ai_family == AF_INET6) {
+                        ((struct sockaddr_in6 *)cur->ai_addr)->sin6_port =
+				htons(port);
+			inet_ntop(AF_INET6,
+				  &((struct sockaddr_in6 *)cur->ai_addr)->sin6_addr,
+				  dest, sizeof(dest));
+			memcpy(&addr, cur->ai_addr,
+                               sizeof(struct sockaddr_in6));
+			temp = PF_INET6;
+			break;
+		}
+	}
+	freeaddrinfo(res);
+	if (!cur) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no AF_INET address for '%s'\n",
 			  __FUNCTION__, server);
 		return NULL;
 	}
-	addr.sin_family = host->h_addrtype;
-	addr.sin_port  = htons(port);
-	memcpy(&addr.sin_addr, host->h_addr_list[0], host->h_length);
 
-	fd = socket(PF_INET, SOCK_STREAM, 0);
+	fd = socket(temp, SOCK_STREAM, 0);
 	if (fd < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: cannot create socket (%d)\n",
 			  __FUNCTION__, errno);
@@ -301,13 +348,8 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	}
 	tcp_rcvbuf = temp;
 
-	cmyth_dbg(CMYTH_DBG_PROTO, "%s: connecting to %d.%d.%d.%d fd = %d\n",
-		  __FUNCTION__,
-		  (ntohl(addr.sin_addr.s_addr) & 0xFF000000) >> 24,
-		  (ntohl(addr.sin_addr.s_addr) & 0x00FF0000) >> 16,
-		  (ntohl(addr.sin_addr.s_addr) & 0x0000FF00) >>  8,
-		  (ntohl(addr.sin_addr.s_addr) & 0x000000FF),
-		  fd);
+	cmyth_dbg(CMYTH_DBG_PROTO, "%s: connecting to %s fd = %d\n",
+		  __FUNCTION__, dest, fd);
 #ifndef _MSC_VER
 	old_sighandler = signal(SIGALRM, sighandler);
 	old_alarm = alarm(5);
@@ -371,13 +413,8 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 		ref_release(ret);
 	}
 	cmyth_dbg(CMYTH_DBG_PROTO, "%s: error connecting to "
-		  "%d.%d.%d.%d, shutdown and close fd = %d\n",
-		  __FUNCTION__,
-		  (ntohl(addr.sin_addr.s_addr) & 0xFF000000) >> 24,
-		  (ntohl(addr.sin_addr.s_addr) & 0x00FF0000) >> 16,
-		  (ntohl(addr.sin_addr.s_addr) & 0x0000FF00) >>  8,
-		  (ntohl(addr.sin_addr.s_addr) & 0x000000FF),
-		  fd);
+		  "%s, shutdown and close fd = %d\n",
+		  __FUNCTION__, dest, fd);
 	shutdown(fd, 2);
 	closesocket(fd);
 	return NULL;
