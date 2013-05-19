@@ -355,7 +355,7 @@ cmyth_connect(char *server, unsigned short port, unsigned buflen,
 	old_alarm = alarm(5);
 #endif
 	my_fd = fd;
-	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: connect failed on port %d to '%s' (%d)\n",
 			  __FUNCTION__, port, server, errno);
