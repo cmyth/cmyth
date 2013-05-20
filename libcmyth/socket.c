@@ -482,7 +482,7 @@ cmyth_rcv_ulong(cmyth_conn_t conn, int *err, unsigned long *buf,
 		return consumed;
 	}
 	while (*num_p) {
-		if (!isdigit(*num_p)) {
+		if (!isdigit((int)*num_p)) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: received illegal integer: '%s'\n",
 				  __FUNCTION__, num);
@@ -572,7 +572,7 @@ cmyth_rcv_long(cmyth_conn_t conn, int *err, long *buf, int count)
 		sign = -1;
 	}
 	while (*num_p) {
-		if (!isdigit(*num_p)) {
+		if (!isdigit((int)*num_p)) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: received illegal integer: '%s'\n",
 				  __FUNCTION__, num);
@@ -1019,7 +1019,7 @@ cmyth_rcv_new_int64(cmyth_conn_t conn, int *err, int64_t *buf, int count,
 		sign = -1;
 	}
 	while (*num_p) {
-		if (!isdigit(*num_p)) {
+		if (!isdigit((int)*num_p)) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: received illegal integer: '%s'\n",
 				  __FUNCTION__, num);
@@ -1127,7 +1127,7 @@ cmyth_rcv_new_uint64(cmyth_conn_t conn, int *err, uint64_t *buf, int count,
 		sign = -1;
 	}
 	while (*num_p) {
-		if (!isdigit(*num_p)) {
+		if (!isdigit((int)*num_p)) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: received illegal integer: '%s'\n",
 				  __FUNCTION__, num);

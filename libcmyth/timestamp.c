@@ -140,7 +140,7 @@ cmyth_timestamp_from_string(char *str)
 	for (i = 0;
 	     i < (datetime ? CMYTH_TIMESTAMP_LEN : CMYTH_DATESTAMP_LEN);
 	     ++i) {
-		if (str[i] && !isdigit(str[i])) {
+		if (str[i] && !isdigit((int)str[i])) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: expected numeral at '%s'[%d]\n",
 				  __FUNCTION__, str, i);

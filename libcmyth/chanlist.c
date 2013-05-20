@@ -77,7 +77,7 @@ cmyth_chanlist_get_item(cmyth_chanlist_t list, unsigned int index)
 		return NULL;
 	}
 
-	if (index >= list->chanlist_count) {
+	if (index >= (unsigned int)list->chanlist_count) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: index %d out of range\n",
 			  __FUNCTION__, index);
 		return NULL;
