@@ -127,8 +127,10 @@ cmyth_event_get(cmyth_conn_t conn, char * data, int len)
 		/* capture the file which a pixmap has been generated for */
 		event = CMYTH_EVENT_GENERATED_PIXMAP;
 		consumed = cmyth_rcv_string(conn, &err, tmp, sizeof(tmp) - 1, count);
+		count -= consumed;
 		if (strncmp(tmp, "OK", 2) == 0) {
 			consumed = cmyth_rcv_string(conn, &err, tmp, sizeof(tmp) - 1, count);
+			count -= consumed;
 			strncpy(data, tmp, len);
 		} else {
 			data[0] = 0;

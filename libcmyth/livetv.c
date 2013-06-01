@@ -575,7 +575,7 @@ cmyth_livetv_change_channel(cmyth_recorder_t rec, cmyth_channeldir_t direction)
 int
 cmyth_livetv_set_channel(cmyth_recorder_t rec, char *name)
 {
-	int rc;
+	int rc = -1;
 
 	if (!rec || !rec->rec_connected) {
 		return -1;

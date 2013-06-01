@@ -3028,7 +3028,8 @@ cmyth_rcv_data(cmyth_conn_t conn, int *err, unsigned char *buf, int count)
 		tv.tv_usec = 0;
 		FD_ZERO(&fds);
 		FD_SET(conn->conn_fd, &fds);
-		if (select((int)conn->conn_fd+1, &fds, NULL, NULL, &tv) == 0) {
+		if ((r=select((int)conn->conn_fd+1, &fds, NULL, NULL,
+			      &tv)) == 0) {
 			conn->conn_hang = 1;
 			continue;
 		} else if (r > 0) {
