@@ -26,7 +26,7 @@
 #ifndef __MVP_ATOMIC_H
 #define __MVP_ATOMIC_H
 
-#ifdef __APPLE__
+#if defined(__GNUC__) && !defined(__clang__) && defined(__APPLE__)
 #pragma GCC optimization_level 0
 #endif
 
@@ -223,7 +223,7 @@ static inline int mvp_atomic_val(mvp_atomic_t *a) {
 	return *a;
 };
 
-#ifdef __APPLE__
+#if defined(__GNUC__) && !defined(__clang__) && defined(__APPLE__)
 #pragma GCC optimization_level reset
 #endif
 

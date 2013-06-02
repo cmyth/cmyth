@@ -110,11 +110,18 @@ int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog, long long bookm
 	if ((r=cmyth_rcv_string(conn,&err,resultstr,sizeof(resultstr),count)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			"%s: cmyth_rcv_string() failed (%d)\n",
-			__FUNCTION__, count);
-		ret = count;
+			__FUNCTION__, err);
+		ret = r;
 		goto out;
 	}
-	ret = (strncmp(resultstr,"OK",2) == 0);
+	count -= r;
+	if (count == 0) {
+		ret = (strncmp(resultstr,"OK",2) == 0);
+	} else {
+		ret = -1;
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s(): %d extra bytes\n",
+			  __FUNCTION__, count);
+	}
    out:
 	pthread_mutex_unlock(&conn->conn_mutex);
 	return ret;

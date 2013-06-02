@@ -1311,14 +1311,16 @@ cmyth_conn_get_freespace(cmyth_conn_t control,
 			ret = err;
 			goto out;
 		}
+		count -= r;
 		*total = lreply;
-		if ((r=cmyth_rcv_int64(control, &err, &lreply, count - r)) < 0) {
+		if ((r=cmyth_rcv_int64(control, &err, &lreply, count)) < 0) {
 			cmyth_dbg(CMYTH_DBG_ERROR,
 				  "%s: cmyth_rcv_int64() failed (%d)\n",
 				  __FUNCTION__, err);
 			ret = err;
 			goto out;
 		}
+		count -= r;
 		*used = lreply;
 	}
 	else
@@ -1331,21 +1333,29 @@ cmyth_conn_get_freespace(cmyth_conn_t control,
 				ret = err;
 				goto out;
 			}
+			count -= r;
 			*total = atoi(reply);
 			if ((r=cmyth_rcv_string(control, &err, reply,
 						sizeof(reply)-1,
-						count-r)) < 0) {
+						count)) < 0) {
 				cmyth_dbg(CMYTH_DBG_ERROR,
 					  "%s: cmyth_rcv_string() failed (%d)\n",
 					  __FUNCTION__, err);
 				ret = err;
 				goto out;
 			}
+			count -= r;
 			*used = atoi(reply);
 
 			*used *= 1024;
 			*total *= 1024;
 		}
+
+	if (count != 0) {
+		ret = -1;
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s(): %d extra bytes\n",
+			  __FUNCTION__, count);
+	}
 
     out:
 	pthread_mutex_unlock(&control->conn_mutex);

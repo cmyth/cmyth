@@ -362,6 +362,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		int version, count;
 		cmyth_proglist_t list;
+		long long total, used;
 
 		printf("libcmyth version %s\n", cmyth_version());
 		printf("librefmem version %s\n", ref_version());
@@ -374,6 +375,11 @@ main(int argc, char **argv)
 		count = cmyth_proglist_get_count(list);
 
 		printf("\trecordings: %d\n", count);
+
+		if (cmyth_conn_get_freespace(control, &total, &used) == 0) {
+			printf("\ttotal space: %lld bytes\n", total);
+			printf("\tused space:  %lld bytes\n", used);
+		}
 
 		get_event(server);
 
