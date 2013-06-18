@@ -218,6 +218,7 @@ cmyth_proginfo_create(void)
 	ret->proginfo_description = NULL;
 	ret->proginfo_season = 0;
 	ret->proginfo_episode = 0;
+	ret->proginfo_syndicatedepisode = NULL;
 	ret->proginfo_category = NULL;
 	ret->proginfo_chanId = 0;
 	ret->proginfo_chanstr = NULL;
@@ -242,7 +243,7 @@ cmyth_proginfo_create(void)
 	ret->proginfo_record_id = 0;
 	ret->proginfo_rec_type = 0;
 	ret->proginfo_rec_dups = 0;
-	ret->proginfo_unknown_1 = 0;
+	ret->proginfo_rec_dupmethod = 0;
 	ret->proginfo_repeat = 0;
 	ret->proginfo_program_flags = 0;
 	ret->proginfo_rec_profile = NULL;
@@ -263,6 +264,8 @@ cmyth_proginfo_create(void)
 	ret->proginfo_videoproperties = 0;
 	ret->proginfo_subtitletype = 0;
 	ret->proginfo_year = 0;
+	ret->proginfo_partnumber = 0;
+	ret->proginfo_parttotal = 0;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 
@@ -311,6 +314,7 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_description = ref_hold(p->proginfo_description);
 	ret->proginfo_season = p->proginfo_season;
 	ret->proginfo_episode = p->proginfo_episode;
+	ret->proginfo_syndicatedepisode = ref_hold(p->proginfo_syndicatedepisode);
 	ret->proginfo_category = ref_hold(p->proginfo_category);
 	ret->proginfo_chanId = p->proginfo_chanId;
 	ret->proginfo_chanstr = ref_hold(p->proginfo_chanstr);
@@ -335,7 +339,7 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_record_id = p->proginfo_record_id;
 	ret->proginfo_rec_type = p->proginfo_rec_type;
 	ret->proginfo_rec_dups = p->proginfo_rec_dups;
-	ret->proginfo_unknown_1 = p->proginfo_unknown_1;
+	ret->proginfo_rec_dupmethod = p->proginfo_rec_dupmethod;
 	ret->proginfo_repeat = p->proginfo_repeat;
 	ret->proginfo_program_flags = p->proginfo_program_flags;
 	ret->proginfo_rec_profile = ref_hold(p->proginfo_rec_profile);
@@ -356,6 +360,8 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_videoproperties = p->proginfo_videoproperties;
 	ret->proginfo_subtitletype = p->proginfo_subtitletype;
 	ret->proginfo_year = p->proginfo_year;
+	ret->proginfo_partnumber = p->proginfo_partnumber;
+	ret->proginfo_parttotal = p->proginfo_parttotal;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 }
@@ -456,6 +462,9 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 		sprintf(buf + strlen(buf), "%u[]:[]", prog->proginfo_season);
 		sprintf(buf + strlen(buf), "%u[]:[]", prog->proginfo_episode);
 	}
+	if (control->conn_version >= 76) {
+		sprintf(buf + strlen(buf), "%s[]:[]", prog->proginfo_syndicatedepisode);
+	}
 	sprintf(buf + strlen(buf), "%s[]:[]",  prog->proginfo_category);
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_chanId);
 	sprintf(buf + strlen(buf), "%s[]:[]",  prog->proginfo_chanstr);
@@ -484,7 +493,7 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_record_id);
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_rec_type);
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_rec_dups);
-	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_unknown_1); // "dupmethod"
+	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_rec_dupmethod);
 	sprintf(buf + strlen(buf), "%s[]:[]",  rec_start_ts);
 	sprintf(buf + strlen(buf), "%s[]:[]",  rec_end_ts);
 	if (control->conn_version < 57) {
@@ -526,6 +535,10 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 	}
 	if (control->conn_version >= 43) {
 		sprintf(buf + strlen(buf), "%d[]:[]", prog->proginfo_year);
+	}
+	if (control->conn_version >= 76) {
+		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_partnumber);
+		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_parttotal);
 	}
 
 	pthread_mutex_lock(&control->conn_mutex);
@@ -1399,6 +1412,9 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		sprintf(buf + strlen(buf), "%u[]:[]", prog->proginfo_season);
 		sprintf(buf + strlen(buf), "%u[]:[]", prog->proginfo_episode);
 	}
+	if (control->conn_version >= 76) {
+		sprintf(buf + strlen(buf), "%s[]:[]", prog->proginfo_syndicatedepisode);
+	}
 	sprintf(buf + strlen(buf), "%s[]:[]",  prog->proginfo_category);
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_chanId);
 	sprintf(buf + strlen(buf), "%s[]:[]",  prog->proginfo_chanstr);
@@ -1427,7 +1443,7 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_record_id);
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_rec_type);
 	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_rec_dups);
-	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_unknown_1); // "dupmethod"
+	sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_rec_dupmethod);
 	sprintf(buf + strlen(buf), "%s[]:[]",  rec_start_ts);
 	sprintf(buf + strlen(buf), "%s[]:[]",  rec_end_ts);
 	if (control->conn_version < 57) {
@@ -1469,6 +1485,10 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	}
 	if (control->conn_version >= 43) {
 		sprintf(buf + strlen(buf), "%d[]:[]", prog->proginfo_year);
+	}
+	if (control->conn_version >= 76) {
+		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_partnumber);
+		sprintf(buf + strlen(buf), "%ld[]:[]", prog->proginfo_parttotal);
 	}
 
 	if ((err = cmyth_send_message(control, buf)) < 0) {

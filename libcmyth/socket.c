@@ -1644,7 +1644,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string title";
 		goto fail;
 	}
 	if (buf->proginfo_title)
@@ -1659,7 +1659,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string subtitle";
 		goto fail;
 	}
 	if (buf->proginfo_subtitle)
@@ -1674,7 +1674,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string description";
 		goto fail;
 	}
 	if (buf->proginfo_description)
@@ -1690,7 +1690,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_ushort";
+			failed = "cmyth_rcv_ushort season";
 			goto fail;
 		}
 
@@ -1699,9 +1699,23 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_ushort";
+			failed = "cmyth_rcv_ushort episode";
 			goto fail;
 		}
+	}
+
+	if (buf->proginfo_version >= 76) {
+		consumed = cmyth_rcv_string(conn, err,
+					    tmp_str, sizeof(tmp_str)-1, count);
+		count -= consumed;
+		total += consumed;
+		if (*err) {
+			failed = "cmyth_rcv_string syndicatedepisode";
+			goto fail;
+		}
+		if (buf->proginfo_syndicatedepisode)
+			ref_release(buf->proginfo_syndicatedepisode);
+		buf->proginfo_syndicatedepisode = ref_strdup(tmp_str);
 	}
 
 	/*
@@ -1712,7 +1726,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string category";
 		goto fail;
 	}
 	if (buf->proginfo_category)
@@ -1727,7 +1741,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_long";
+		failed = "cmyth_rcv_long chanId";
 		goto fail;
 	}
 	buf->proginfo_chanId = atoi(tmp_str);
@@ -1740,7 +1754,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string chanstr";
 		goto fail;
 	}
 	if (buf->proginfo_chanstr)
@@ -1755,7 +1769,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string chansign";
 		goto fail;
 	}
 	if (buf->proginfo_chansign)
@@ -1771,7 +1785,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string chanicon";
 		goto fail;
 	}
 	/* FIXME: doesn't seem to match the dump? */
@@ -1803,7 +1817,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string url";
 		goto fail;
 	}
 	if (buf->proginfo_url)
@@ -1828,7 +1842,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "rcv_64";
+		failed = "rcv_64 length";
 		goto fail;
 	}
 
@@ -1849,7 +1863,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "proginfo_start_ts cmyth_rcv";
+		failed = "proginfo_start_ts cmyth_rcv start";
 		goto fail;
 	}
 
@@ -1868,7 +1882,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_timestamp";
+		failed = "cmyth_rcv_timestamp end";
 		goto fail;
 	}
 
@@ -1919,7 +1933,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong override";
 		goto fail;
 	}
 
@@ -1931,7 +1945,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string hostname";
 		goto fail;
 	}
 	if (buf->proginfo_hostname)
@@ -1945,7 +1959,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong source_id";
 		goto fail;
 	}
 
@@ -1956,7 +1970,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong card_id";
 		goto fail;
 	}
 
@@ -1967,7 +1981,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong input_id";
 		goto fail;
 	}
 
@@ -1979,7 +1993,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_string";
+		failed = "cmyth_rcv_string rec_priority";
 		goto fail;
 	}
 	if (buf->proginfo_rec_priority)
@@ -1993,7 +2007,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong rec_status";
 		goto fail;
 	}
 
@@ -2004,7 +2018,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong record_id";
 		goto fail;
 	}
 
@@ -2015,7 +2029,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong rec_type";
 		goto fail;
 	}
 
@@ -2026,20 +2040,20 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_ulong";
+		failed = "cmyth_rcv_ulong rec_dups";
 		goto fail;
 	}
 
 	if (buf->proginfo_version >= 8) {
 		/*
-		 * Get proginfo_unknown_1 (long)
+		 * Get proginfo_rec_dupmethod (long)
 		 */
 		consumed = cmyth_rcv_ulong(conn, err,
-					   &buf->proginfo_unknown_1, count);
+					   &buf->proginfo_rec_dupmethod, count);
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_ulong";
+			failed = "cmyth_rcv_ulong dupmethod";
 			goto fail;
 		}
 	}
@@ -2061,7 +2075,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_timestamp";
+		failed = "cmyth_rcv_timestamp rec_start_ts";
 		goto fail;
 	}
 
@@ -2082,7 +2096,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_timestamp";
+		failed = "cmyth_rcv_timestamp rec_end_ts";
 		goto fail;
 	}
 
@@ -2107,7 +2121,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 	count -= consumed;
 	total += consumed;
 	if (*err) {
-		failed = "cmyth_rcv_long";
+		failed = "cmyth_rcv_long program_flags";
 		goto fail;
 	}
 
@@ -2121,7 +2135,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string recgroup";
 			goto fail;
 		}
 		if (buf->proginfo_recgroup)
@@ -2139,7 +2153,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string chancommfree";
 			goto fail;
 		}
 		if (buf->proginfo_chancommfree)
@@ -2175,7 +2189,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string seriesid";
 			goto fail;
 		}
 		if (buf->proginfo_seriesid)
@@ -2192,7 +2206,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string programid";
 			goto fail;
 		}
 		if (buf->proginfo_programid)
@@ -2209,7 +2223,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string inetref";
 			goto fail;
 		}
 		if (buf->proginfo_inetref)
@@ -2236,7 +2250,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_timestamp";
+			failed = "cmyth_rcv_timestamp lastmodified";
 			goto fail;
 		}
 	}
@@ -2252,7 +2266,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string stars";
 			goto fail;
 		}
 		if (buf->proginfo_stars)
@@ -2280,7 +2294,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string originalairdate";
 			goto fail;
 		}
 	}
@@ -2291,7 +2305,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_ulong";
+			failed = "cmyth_rcv_ulong hasairdate";
 			goto fail;
 		}
 	}
@@ -2305,7 +2319,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string playgroup";
 			goto fail;
 		}
 		if (buf->proginfo_playgroup)
@@ -2322,7 +2336,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string recpriority_2";
 			goto fail;
 		}
 		if (buf->proginfo_recpriority_2)
@@ -2338,7 +2352,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_long";
+			failed = "cmyth_rcv_long parentid";
 			goto fail;
 		}
 	}
@@ -2351,7 +2365,7 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		count -= consumed;
 		total += consumed;
 		if (*err) {
-			failed = "cmyth_rcv_string";
+			failed = "cmyth_rcv_string storagegroup";
 			goto fail;
 		}
 		if (buf->proginfo_storagegroup)
@@ -2408,6 +2422,26 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 				failed = "cmyth_rcv_ushort proginfo_year";
 				goto fail;
 			}
+		}
+	}
+
+	if (buf->proginfo_version >= 76) {
+		consumed = cmyth_rcv_ulong(conn, err,
+				&buf->proginfo_partnumber, count);
+		count -= consumed;
+		total += consumed;
+		if (*err) {
+			failed = "cmyth_rcv_ulong partnumber";
+			goto fail;
+		}
+
+		consumed = cmyth_rcv_ulong(conn, err,
+				&buf->proginfo_parttotal, count);
+		count -= consumed;
+		total += consumed;
+		if (*err) {
+			failed = "cmyth_rcv_ulong parttotal";
+			goto fail;
 		}
 	}
 
