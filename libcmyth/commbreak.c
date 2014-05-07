@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2013, Jon Gettler
+ *  Copyright (C) 2005-2014, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -98,18 +98,14 @@ cmyth_get_commbreaklist(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	unsigned int len = CMYTH_UTC_LEN + CMYTH_LONGLONG_LEN + 19;
 	int err;
 	int count;
-	char *buf;
+	char buf[len];
 	int r;
 
 	cmyth_commbreaklist_t breaklist = cmyth_commbreaklist_create();
 
-	buf = alloca(len);
-	if (!buf) {
-		return breaklist;
-	}
-
-	sprintf(buf,"%s %ld %i", "QUERY_COMMBREAK", prog->proginfo_chanId, 
-	        (int)cmyth_timestamp_to_unixtime(prog->proginfo_rec_start_ts));
+	snprintf(buf, sizeof(buf), "%s %ld %i",
+		 "QUERY_COMMBREAK", prog->proginfo_chanId, 
+		 (int)cmyth_timestamp_to_unixtime(prog->proginfo_rec_start_ts));
 	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn, buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -144,20 +140,16 @@ cmyth_get_cutlist(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	unsigned int len = CMYTH_UTC_LEN + CMYTH_LONGLONG_LEN + 17;
 	int err;
 	int count;
-	char *buf;
+	char buf[len];
 	int r;
 
 	cmyth_commbreaklist_t breaklist = cmyth_commbreaklist_create();
 
-	buf = alloca(len);
-	if (!buf) {
-		return breaklist;
-	}
-
 	pthread_mutex_lock(&conn->conn_mutex);
 
-	sprintf(buf,"%s %ld %i", "QUERY_CUTLIST", prog->proginfo_chanId, 
-	        (int)cmyth_timestamp_to_unixtime(prog->proginfo_rec_start_ts));
+	snprintf(buf, sizeof(buf), "%s %ld %i",
+		 "QUERY_CUTLIST", prog->proginfo_chanId, 
+		 (int)cmyth_timestamp_to_unixtime(prog->proginfo_rec_start_ts));
 
 	if ((err = cmyth_send_message(conn, buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,

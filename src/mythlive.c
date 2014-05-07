@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2013, Jon Gettler
+ *  Copyright (C) 2013-2014, Jon Gettler
  *  http://www.mvpmc.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -171,8 +171,14 @@ next_channel(cmyth_recorder_t rec, cmyth_chanlist_t cl, int random)
 	if (random) {
 		cmyth_channel_t chan;
 		int count = cmyth_chanlist_get_count(cl);
-		int r = rand() % count;
+		int r;
 		char *name;
+
+#if defined(HAS_ARC4RANDOM)
+		r = arc4random_uniform(count);
+#else
+		r = rand() % count;
+#endif
 
 		chan = cmyth_chanlist_get_item(cl, r);
 		name = cmyth_channel_name(chan);

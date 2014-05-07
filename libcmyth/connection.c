@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2014, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -54,6 +54,9 @@ static myth_protomap_t protomap[] = {
 	{75, "SweetRock"},
 	{76, "FireWilde"},
 	{77, "WindMark"},
+	{78, "IceBurns"},
+	{79, "BasaltGiant"},
+	{80, "TaDah!"},
 	{0, ""}
 };
 
@@ -131,7 +134,11 @@ set_host_version(char *host, unsigned int version)
 	}
 
 	/* Evict a host at random */
+#if defined(HAS_ARC4RANDOM)
+	i = arc4random_uniform(VERSION_CACHE_SIZE);
+#else
 	i = rand() % VERSION_CACHE_SIZE;
+#endif
 
 	if (version_cache[i].host) {
 		free(version_cache[i].host);
@@ -462,9 +469,12 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 				  __FUNCTION__);
 			goto shut;
 		}
-		sprintf(announcement, "MYTH_PROTO_VERSION %ld %s", conn->conn_version, map->token);
+		snprintf(announcement, sizeof(announcement),
+			 "MYTH_PROTO_VERSION %ld %s",
+			 conn->conn_version, map->token);
 	} else {
-		sprintf(announcement, "MYTH_PROTO_VERSION %ld", conn->conn_version);
+		snprintf(announcement, sizeof(announcement),
+			 "MYTH_PROTO_VERSION %ld", conn->conn_version);
 	}
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -505,9 +515,11 @@ cmyth_conn_connect(char *server, unsigned short port, unsigned buflen,
 		char buf[128];
 		snprintf(buf, sizeof(buf), "%s_%d_%p", my_hostname,
 			 getpid(), conn);
-		sprintf(announcement, "ANN Playback %s %d", buf, event);
+		snprintf(announcement, sizeof(announcement),
+			 "ANN Playback %s %d", buf, event);
 	} else {
-		sprintf(announcement, "ANN Playback %s 0", my_hostname);
+		snprintf(announcement, sizeof(announcement),
+			 "ANN Playback %s 0", my_hostname);
 	}
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -648,8 +660,7 @@ cmyth_conn_connect_pathname(cmyth_proginfo_t prog,  cmyth_conn_t control,
 		cmyth_dbg(CMYTH_DBG_PROTO,
 		          "%s: BackendServerIP setting not found. Using proginfo_host: %s\n",
 		          __FUNCTION__, prog->proginfo_host);
-		myth_host = ref_alloc(strlen(prog->proginfo_host) + 1);
-		strcpy(myth_host, prog->proginfo_host);
+		myth_host = ref_strdup(prog->proginfo_host);
 	}
 	conn = cmyth_connect(myth_host, prog->proginfo_port,
 			     buflen, tcp_rcvbuf);
@@ -678,12 +689,13 @@ cmyth_conn_connect_pathname(cmyth_proginfo_t prog,  cmyth_conn_t control,
 		goto shut;
 	}
 	if (control->conn_version >= 44) {
-		sprintf(announcement, "ANN FileTransfer %s[]:[]%s[]:[]",
-			  my_hostname, pathname);
+		snprintf(announcement, ann_size,
+			 "ANN FileTransfer %s[]:[]%s[]:[]",
+			 my_hostname, pathname);
 	}
 	else {
-		sprintf(announcement, "ANN FileTransfer %s[]:[]%s",
-			  my_hostname, pathname);
+		snprintf(announcement, ann_size,
+			 "ANN FileTransfer %s[]:[]%s", my_hostname, pathname);
 	}
 
 	if (cmyth_send_message(conn, announcement) < 0) {
@@ -878,8 +890,8 @@ cmyth_conn_connect_ring(cmyth_recorder_t rec, unsigned buflen, int tcp_rcvbuf)
 			  __FUNCTION__, ann_size);
 		goto shut;
 	}
-	sprintf(announcement,
-		"ANN RingBuffer %s %d", my_hostname, rec->rec_id);
+	snprintf(announcement, ann_size,
+		 "ANN RingBuffer %s %d", my_hostname, rec->rec_id);
 	if (cmyth_send_message(conn, announcement) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_send_message('%s') failed\n",

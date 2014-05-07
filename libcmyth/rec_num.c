@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2010, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -198,30 +198,13 @@ cmyth_rec_num_get(char *host,
 char *
 cmyth_rec_num_string(cmyth_rec_num_t rn)
 {
-	unsigned len = sizeof("[]:[][]:[]");
-	char id[16];
-	char port[8];
-	char *ret;
-
 	if (!rn) {
 		return NULL;
 	}
 	if (!rn->recnum_host) {
 		return NULL;
 	}
-	sprintf(id, "%d", rn->recnum_id);
-	len += strlen(id);
-	sprintf(port, "%d", rn->recnum_port);
-	len += strlen(port);
-	len += strlen(rn->recnum_host);
-	ret = malloc((len + 1) * sizeof(char));
-	if (!ret) {
-		return NULL;
-	}
-	strcpy(ret, id);
-	strcat(ret, "[]:[]");
-	strcat(ret, rn->recnum_host);
-	strcat(ret, "[]:[]");
-	strcat(ret, port);
-	return ret;
+
+	return ref_sprintf("%d[]:[]%s[]:[]%d",
+			   rn->recnum_id, rn->recnum_host, rn->recnum_port);
 }

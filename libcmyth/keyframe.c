@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2010, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -109,24 +109,10 @@ cmyth_keyframe_fill(unsigned long keynum, unsigned long long pos)
 char *
 cmyth_keyframe_string(cmyth_keyframe_t kf)
 {
-	unsigned len = sizeof("[]:[]");
-	char key[32];
-	char pos[32];
-	char *ret;
-
 	if (!kf) {
 		return NULL;
 	}
-	sprintf(pos, "%"PRId64, kf->keyframe_pos);
-	len += strlen(pos);
-	sprintf(key, "%ld", kf->keyframe_number);
-	len += strlen(key);
-	ret = malloc(len * sizeof(char));
-	if (!ret) {
-		return NULL;
-	}
-	strcpy(ret, key);
-	strcat(ret, "[]:[]");
-	strcat(ret, pos);
-	return ret;
+
+	return ref_sprintf("%ld[]:[]%"PRId64,
+			   kf->keyframe_number, kf->keyframe_pos);
 }

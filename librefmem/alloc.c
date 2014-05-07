@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2010, Eric Lund, Jon Gettler
+ *  Copyright (C) 2005-2014, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -38,6 +38,9 @@
  *             follows this simple rule.  There is no need for deep
  *             copying of any structure.
  */
+
+#define _GNU_SOURCE
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -47,6 +50,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #ifdef DEBUG
 #include <inttypes.h>
@@ -425,6 +429,45 @@ ref_strdup(char *str)
 			   __FUNCTION__, str, str, len, ret);
 	}
 	refmem_dbg(REF_DBG_DEBUG, "%s() }\n", __FUNCTION__);
+	return ret;
+}
+
+/*
+ * ref_sprintf(const char *format, ...)
+ *
+ * Scope: PUBLIC
+ *
+ * Description
+ *
+ * Similar to asprintf() except that it returns a pointer to a reference
+ * counted string.
+ *
+ * Return Value:
+ *
+ * Success: A non-NULL pointer to a reference counted string which can be
+ *          released using ref_release().
+ *
+ * Failure: A NULL pointer.
+ */
+char*
+ref_sprintf(const char *format, ...)
+{
+	va_list ap;
+	char *mem, *ret;
+	int rc;
+
+	va_start(ap, format);
+	rc = vasprintf(&mem, format, ap);
+	va_end(ap);
+
+	if (rc < 0) {
+		return NULL;
+	}
+
+	ret = ref_strdup(mem);
+
+	free(mem);
+
 	return ret;
 }
 

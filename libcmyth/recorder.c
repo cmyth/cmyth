@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2014, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -499,7 +499,8 @@ cmyth_recorder_pause(cmyth_recorder_t rec)
 
 	pthread_mutex_lock(&rec->rec_conn->conn_mutex);
 
-	sprintf(Buffer, "QUERY_RECORDER %ld[]:[]PAUSE", (long) rec->rec_id);
+	snprintf(Buffer, sizeof(Buffer),
+		 "QUERY_RECORDER %ld[]:[]PAUSE", (long) rec->rec_id);
 	if ((ret=cmyth_send_message(rec->rec_conn, Buffer)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_send_message('%s') failed\n",

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006-2009, Simon Hyde
+ *  Copyright (C) 2006-2014, Simon Hyde
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -186,7 +186,7 @@ static inline int
 query_buffer_add_long(cmyth_mysql_query_t * query, long param)
 {
     char buf[CMYTH_LONG_STRLEN];
-    sprintf(buf,"%ld",param);
+    snprintf(buf,sizeof(buf),"%ld",param);
     return query_buffer_add_str(query,buf);
 }
 
@@ -194,7 +194,7 @@ static inline int
 query_buffer_add_ulong(cmyth_mysql_query_t * query, long param)
 {
     char buf[CMYTH_ULONG_STRLEN];
-    sprintf(buf,"%lu",param);
+    snprintf(buf,sizeof(buf),"%lu",param);
     return query_buffer_add_str(query,buf);
 }
 

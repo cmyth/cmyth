@@ -146,12 +146,13 @@ env.AddMethod(install_shared, 'InstallShared')
 env.AddMethod(gen_version, 'GenVersion')
 
 cflags = '-Wall -Wextra -Werror -Wno-unused-parameter'
+ldflags = ''
 
 vars = Variables('cmyth.conf')
 vars.Add('CC', '', 'gcc')
 vars.Add('LD', '', 'ld')
 vars.Add('CFLAGS', '', cflags)
-vars.Add('LDFLAGS', '', '')
+vars.Add('LDFLAGS', '', ldflags)
 vars.Add('HAS_MYSQL', '', '')
 
 vars.Update(env)
@@ -160,7 +161,7 @@ if 'CC' in os.environ:
     env.Replace(CC = os.environ['CC'])
 
 if 'LD' in os.environ:
-    env.Replace(CC = os.environ['LD'])
+    env.Replace(LD = os.environ['LD'])
 
 if 'CFLAGS' in os.environ:
     cflags = os.environ['CFLAGS']
@@ -188,6 +189,11 @@ elif env['HAS_MYSQL'] == '':
 
 if env['HAS_MYSQL'] == 'yes':
     env.Append(CPPFLAGS = '-DHAS_MYSQL')
+
+conf = Configure(env)
+if conf.CheckLib('c', 'arc4random_uniform', autoadd=0):
+    env.Append(CPPFLAGS = '-DHAS_ARC4RANDOM')
+env = conf.Finish()
 
 #
 # SCons builders

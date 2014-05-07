@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2013, Jon Gettler
+ *  Copyright (C) 2005-2014, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -27,8 +27,8 @@
 
 long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 {
-	char *buf;
 	unsigned int len = CMYTH_TIMESTAMP_LEN + CMYTH_LONGLONG_LEN + 18;
+	char buf[len];
 	int err;
 	long long ret;
 	int count;
@@ -36,12 +36,8 @@ long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	int r;
 	char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
 	cmyth_datetime_to_string(start_ts_dt, prog->proginfo_rec_start_ts);
-	buf = alloca(len);
-	if (!buf) {
-		return -ENOMEM;
-	}
-	sprintf(buf,"%s %ld %s","QUERY_BOOKMARK",prog->proginfo_chanId,
-		start_ts_dt);
+	snprintf(buf, sizeof(buf), "%s %ld %s","QUERY_BOOKMARK",
+		 prog->proginfo_chanId, start_ts_dt);
 	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn,buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -74,29 +70,27 @@ long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	
 int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog, long long bookmark)
 {
-	char *buf;
 	unsigned int len = CMYTH_TIMESTAMP_LEN + CMYTH_LONGLONG_LEN * 2 + 18;
+	char buf[len];
 	char resultstr[3];
 	int r,err;
 	int ret;
 	int count;
 	char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
 	cmyth_datetime_to_string(start_ts_dt, prog->proginfo_rec_start_ts);
-	buf = alloca(len);
-	if (!buf) {
-		return -ENOMEM;
-	}
 	if (conn->conn_version >= 66) {
 		/*
 		 * Since protocol 66 mythbackend expects a single 64 bit integer rather than two 32 bit
 		 * hi and lo integers.
 		 */
-		sprintf(buf, "SET_BOOKMARK %ld %s %"PRIu64, prog->proginfo_chanId,
-				start_ts_dt, (int64_t)bookmark);
+		snprintf(buf, sizeof(buf), "SET_BOOKMARK %ld %s %"PRIu64,
+			 prog->proginfo_chanId, start_ts_dt, (int64_t)bookmark);
 	}
 	else {
-		sprintf(buf, "SET_BOOKMARK %ld %s %d %d", prog->proginfo_chanId,
-				start_ts_dt, (int32_t)(bookmark >> 32), (int32_t)(bookmark & 0xffffffff));
+		snprintf(buf, sizeof(buf), "SET_BOOKMARK %ld %s %d %d",
+			 prog->proginfo_chanId, start_ts_dt,
+			 (int32_t)(bookmark >> 32),
+			 (int32_t)(bookmark & 0xffffffff));
 	}
 	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn,buf)) < 0) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -330,10 +330,10 @@ cmyth_proglist_get_all_recorded(cmyth_conn_t control)
 	}
 
 	if (control->conn_version < 65) {
-		strcpy(query, "QUERY_RECORDINGS Play");
+		strncpy(query, "QUERY_RECORDINGS Play", sizeof(query));
 	}
 	else {
-		strcpy(query, "QUERY_RECORDINGS Ascending");
+		strncpy(query, "QUERY_RECORDINGS Ascending", sizeof(query));
 	}
 	if (cmyth_proglist_get_list(control, proglist,
 				    query,

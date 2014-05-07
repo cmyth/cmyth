@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2014, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -86,6 +86,14 @@ extern void *ref_hold(void *p);
  * \return reference to the duplicated string
  */
 extern char *ref_strdup(char *str);
+
+/**
+ * Create a reference counted buffer whose contents contain the result of
+ * calling sprintf() on the argument list.
+ * \param format sprintf() style format list
+ * \return reference to the allocated string
+ */
+extern char *ref_sprintf(const char *format, ...);
 
 /**
  * Allocate reference counted memory. (PRIVATE)

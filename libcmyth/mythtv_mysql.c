@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -224,10 +224,10 @@ cmyth_get_offset_mysql(cmyth_database_t db, int type, char *recordid, int chanid
 	       return -1;
 	}
 	if (type == 1) { // startoffset
-		sprintf (query,"SELECT startoffset FROM record WHERE (recordid='%s' AND chanid=%d AND title='%s' AND subtitle='%s' AND description='%s' AND seriesid='%s' AND programid='%s')",recordid,chanid,title,subtitle,description,seriesid,programid);
+		snprintf (query,sizeof(query),"SELECT startoffset FROM record WHERE (recordid='%s' AND chanid=%d AND title='%s' AND subtitle='%s' AND description='%s' AND seriesid='%s' AND programid='%s')",recordid,chanid,title,subtitle,description,seriesid,programid);
 	}
 	else if (type == 0) { //endoffset
-		sprintf (query,"SELECT endoffset FROM record WHERE (recordid='%s' AND chanid=%d AND title='%s' AND subtitle='%s' AND description='%s' AND seriesid='%s' AND programid='%s')",recordid,chanid,title,subtitle,description,seriesid,programid);
+		snprintf (query,sizeof(query),"SELECT endoffset FROM record WHERE (recordid='%s' AND chanid=%d AND title='%s' AND subtitle='%s' AND description='%s' AND seriesid='%s' AND programid='%s')",recordid,chanid,title,subtitle,description,seriesid,programid);
 	}
 
 	cmyth_dbg(CMYTH_DBG_ERROR, "%s : query=%s\n",__FUNCTION__, query);
@@ -263,7 +263,7 @@ cmyth_get_recordid_mysql(cmyth_database_t db, int chanid, char *title, char *sub
                fprintf(stderr,"%s: cmyth_db_check_connection failed\n", __FUNCTION__);
 	       return NULL;
 	}
-	sprintf (query,"SELECT recordid FROM record WHERE (chanid=%d AND title='%s' AND subtitle='%s' AND description='%s' AND seriesid='%s' AND programid='%s')",chanid,title,subtitle,description,seriesid,programid);
+	snprintf (query,sizeof(query),"SELECT recordid FROM record WHERE (chanid=%d AND title='%s' AND subtitle='%s' AND description='%s' AND seriesid='%s' AND programid='%s')",chanid,title,subtitle,description,seriesid,programid);
 
 	cmyth_dbg(CMYTH_DBG_ERROR, "%s : query=%s\n",__FUNCTION__, query);
 	

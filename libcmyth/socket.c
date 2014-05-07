@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2012, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -64,7 +64,7 @@ cmyth_send_message(cmyth_conn_t conn, char *request)
 	 * For now this is unimplemented.
 	 */
 	char *msg;
-	int reqlen;
+	int reqlen, msglen;
 	int written = 0;
 	int w;
 	struct timeval tv;
@@ -86,14 +86,15 @@ cmyth_send_message(cmyth_conn_t conn, char *request)
 		return -EINVAL;
 	}
 	reqlen = strlen(request);
-	msg = malloc(9 + reqlen);
+	msglen = 9 + reqlen;
+	msg = alloca(msglen);
 	if (!msg) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cannot allocate message buffer\n",
 			  __FUNCTION__);
 		return -ENOMEM;
 	}
-	sprintf(msg, "%-8d%s", reqlen, request);
+	snprintf(msg, msglen, "%-8d%s", reqlen, request);
 	cmyth_dbg(CMYTH_DBG_PROTO, "%s: sending message '%s'\n",
 		  __FUNCTION__, msg);
 	reqlen += 8;
@@ -112,13 +113,11 @@ cmyth_send_message(cmyth_conn_t conn, char *request)
 		if (w < 0) {
 			cmyth_dbg(CMYTH_DBG_ERROR, "%s: write() failed (%d)\n",
 				  __FUNCTION__, errno);
-			free(msg);
 			return -errno;
 		}
 		written += w;
 	} while (written < reqlen);
 
-	free(msg);
 	return 0;
 }
 
@@ -1800,9 +1799,9 @@ cmyth_rcv_proginfo(cmyth_conn_t conn, int *err, cmyth_proginfo_t buf,
 		 * Simulate a channel name (Number and Callsign) for
 		 * compatibility.
 		 */
-		sprintf(tmp_str,
-			"%s %s", buf->proginfo_chanstr,
-			buf->proginfo_chansign);
+		snprintf(tmp_str, sizeof(tmp_str),
+			 "%s %s", buf->proginfo_chanstr,
+			 buf->proginfo_chansign);
 		buf->proginfo_channame = ref_strdup(tmp_str);
 	} else { /* Assume version 1 */
 		buf->proginfo_channame = ref_strdup(tmp_str);
