@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -77,32 +77,11 @@ cmyth_file_destroy(cmyth_file_t file)
 		ref_release(file->file_control);
 		pthread_mutex_unlock(&file->file_control->conn_mutex);
 	}
-	if (file->closed_callback) {
-	    (file->closed_callback)(file);
-	}
 	if (file->file_data) {
 		ref_release(file->file_data);
 	}
 
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
-}
-
-/*
- * cmyth_file_set_closed_callback(cmyth_file_t file, void (*callback)(cmyth_file_t))
- *
- * Scope: PUBLIC
- *
- * Description
- *
- * Sets a callback which will be called when a file connection has been
- * signalled as done. Passing in NULL means no callback.
- */
-
-void cmyth_file_set_closed_callback(cmyth_file_t file, void (*callback)(cmyth_file_t))
-{
-    if(!file)
-	return;
-    file->closed_callback = callback;
 }
 
 /*
@@ -140,38 +119,8 @@ cmyth_file_create(cmyth_conn_t control)
 	ret->file_start = 0;
 	ret->file_length = 0;
 	ret->file_pos = 0;
-	ret->closed_callback = NULL;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
-}
-
-/*
- * cmyth_file_data(cmyth_file_t p)
- * 
- * Scope: PUBLIC
- *
- * Description
- *
- * Obtain a held reference to the data connection inside of a file
- * connection.  This cmyth_conn_t can be used to read data from the
- * MythTV backend server during a file transfer.
- *
- * Return Value:
- *
- * Sucess: A non-null cmyth_conn_t (this is a pointer type)
- *
- * Failure: NULL
- */
-cmyth_conn_t
-cmyth_file_data(cmyth_file_t file)
-{
-	if (!file) {
-		return NULL;
-	}
-	if (!file->file_data) {
-		return NULL;
-	}
-	return ref_hold(file->file_data);
 }
 
 /*

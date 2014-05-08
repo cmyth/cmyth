@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -243,12 +243,6 @@ cmyth_ringbuf_setup(cmyth_recorder_t rec)
 	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	return new_rec;
-}
-
-char *
-cmyth_ringbuf_pathname(cmyth_recorder_t rec)
-{
-        return ref_hold(rec->rec_ring->ringbuf_url);
 }
 
 /*

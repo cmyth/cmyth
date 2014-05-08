@@ -34,10 +34,11 @@ long long cmyth_get_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog)
 	int count;
 	int64_t ll;
 	int r;
-	char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
-	cmyth_datetime_to_string(start_ts_dt, prog->proginfo_rec_start_ts);
+	char *start_ts_dt;
+	start_ts_dt = cmyth_datetime_string(prog->proginfo_rec_start_ts);
 	snprintf(buf, sizeof(buf), "%s %ld %s","QUERY_BOOKMARK",
 		 prog->proginfo_chanId, start_ts_dt);
+	ref_release(start_ts_dt);
 	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn,buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -76,8 +77,8 @@ int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog, long long bookm
 	int r,err;
 	int ret;
 	int count;
-	char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
-	cmyth_datetime_to_string(start_ts_dt, prog->proginfo_rec_start_ts);
+	char *start_ts_dt;
+	start_ts_dt = cmyth_datetime_string(prog->proginfo_rec_start_ts);
 	if (conn->conn_version >= 66) {
 		/*
 		 * Since protocol 66 mythbackend expects a single 64 bit integer rather than two 32 bit
@@ -92,6 +93,7 @@ int cmyth_set_bookmark(cmyth_conn_t conn, cmyth_proginfo_t prog, long long bookm
 			 (int32_t)(bookmark >> 32),
 			 (int32_t)(bookmark & 0xffffffff));
 	}
+	ref_release(start_ts_dt);
 	pthread_mutex_lock(&conn->conn_mutex);
 	if ((err = cmyth_send_message(conn,buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,

@@ -110,15 +110,16 @@ show_proglist(cmyth_proglist_t episodes, int level, int show_card)
 			printf("\tTitle:           %s\n", title);
 			if (rec > 0) {
 				cmyth_timestamp_t end;
-				char str[32];
+				char *str;
 
 				end = cmyth_proginfo_rec_end(prog);
-				cmyth_timestamp_to_string(str, end);
+				str = cmyth_timestamp_string(end);
 
 				printf("\t                 RECORDING on %d until %s\n",
 				       rec, str);
 
 				ref_release(end);
+				ref_release(str);
 			}
 		}
 		if (subtitle) {
@@ -220,13 +221,13 @@ get_recorders(int level)
 		} else if (state == 1) {
 			cmyth_proginfo_t prog;
 			cmyth_timestamp_t end;
-			char str[32];
+			char *str;
 			char *title;
 
 			prog = cmyth_recorder_get_cur_proginfo(rec);
 
 			end = cmyth_proginfo_rec_end(prog);
-			cmyth_timestamp_to_string(str, end);
+			str = cmyth_timestamp_string(end);
 
 			printf("Recorder %d is recording until %s\n", i, str);
 
@@ -241,6 +242,7 @@ get_recorders(int level)
 
 			ref_release(prog);
 			ref_release(end);
+			ref_release(str);
 		} else {
 			printf("Recorder %d is in an unknown state\n", i);
 		}

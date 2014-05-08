@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2014, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -865,51 +865,37 @@ extern time_t cmyth_timestamp_to_unixtime(cmyth_timestamp_t ts);
 /**
  * Create a string representing the timestamp.  The resulting format is
  * yyyy-mm-ddThh:mm:ss.
- * \param str character array of at least 20 bytes
  * \param ts timestamp structure
- * \retval <0 error
- * \retval 0 success
- * \note This function should be deprecated since a buffer overflow can
- *       easily occur without specifying the size of str.
+ * \retval reference counted string
  */
-extern int cmyth_timestamp_to_string(char *str, cmyth_timestamp_t ts);
+extern char* cmyth_timestamp_string(cmyth_timestamp_t ts);
 
 /**
  * Create a string representing the timestamp.  The resulting format is
  * yyyy-mm-dd.
- * \param str character array of at least 11 bytes
  * \param ts timestamp structure
- * \retval <0 error
- * \retval 0 success
+ * \retval reference counted string
  * \note This function should be deprecated since a buffer overflow can
  *       easily occur without specifying the size of str.
  */
-extern int cmyth_timestamp_to_isostring(char *str, cmyth_timestamp_t ts);
+extern char* cmyth_timestamp_isostring(cmyth_timestamp_t ts);
 
 /**
  * Create a string representing the timestamp.  The resulting format is
  * yyyy-mm-ddThh:mm:ss ?M.
- * \param str character array of at least 24 bytes
  * \param ts timestamp structure
  * \param time_format_12 non-zero for 12 hour format
- * \retval <0 error
- * \retval 0 success
- * \note This function should be deprecated since a buffer overflow can
- *       easily occur without specifying the size of str.
+ * \retval reference counted string
  */
-extern int cmyth_timestamp_to_display_string(char *str, cmyth_timestamp_t ts,
-					     int time_format_12);
+extern char* cmyth_timestamp_display_string(cmyth_timestamp_t ts,
+					    int time_format_12);
 
 /**
  * Create a string representing the timestamp as seconds since the Epoch.
- * \param str character array of at least 11 bytes
  * \param ts timestamp structure
- * \retval <0 error
- * \retval 0 success
- * \note This function should be deprecated since a buffer overflow can
- *       easily occur without specifying the size of str.
+ * \retval reference counted string
  */
-extern int cmyth_datetime_to_string(char *str, cmyth_timestamp_t ts);
+extern char* cmyth_datetime_string(cmyth_timestamp_t ts);
 
 /**
  * Compare two timestamps.
@@ -927,6 +913,15 @@ extern int cmyth_timestamp_compare(cmyth_timestamp_t ts1,
  * Program Info Operations
  * -----------------------------------------------------------------
  */
+
+/**
+ * Fill out a possibly incomplete program info data structure.
+ * \param control backend control handle
+ * \param prog proginfo handle
+ * \returns a complete proginfo structure
+ */
+extern cmyth_proginfo_t cmyth_proginfo_get_detail(cmyth_conn_t control,
+						  cmyth_proginfo_t prog);
 
 /**
  * Delete a program.
@@ -1607,7 +1602,7 @@ extern cmyth_ringbuf_t cmyth_ringbuf_create(void);
  * Print a libcmyth debug message.
  * \param level debug level
  * \param fmt printf style format
- * \deprecated Use of cmyth_ringbuf_t outside libcmyth is \b deprecated.
+ * \deprecated Use of cmyth_dbg outside libcmyth is \b deprecated.
  */
 extern void cmyth_dbg(int level, char *fmt, ...);
 
@@ -1759,169 +1754,6 @@ extern int cmyth_rcv_commbreaklist(cmyth_conn_t conn, int *err,
 
 /*
  * -----------------------------------------------------------------
- * Deprecated items (will be removed entirely)
- * -----------------------------------------------------------------
- */
-
-/**
- * \defgroup deprecated_items Deprecated Items
- * These items are deprecated.  They should not be used, and will be
- * removed in the future.
- * @{
- */
-
-/**
- * \deprecated Use of keyframes is \b deprecated.
- */
-struct cmyth_keyframe;
-
-/**
- * \deprecated Use of keyframes is \b deprecated.
- */
-typedef struct cmyth_keyframe *cmyth_keyframe_t;
-
-/**
- * \deprecated Use of keyframes is \b deprecated.
- */
-extern cmyth_keyframe_t cmyth_keyframe_create(void);
-
-/**
- * \deprecated Use of keyframes is \b deprecated.
- */
-extern char *cmyth_keyframe_string(cmyth_keyframe_t kf);
-
-/**
- * \deprecated Use of posmaps are \b deprecated.
- */
-struct cmyth_posmap;
-
-/**
- * \deprecated Use of posmaps are \b deprecated.
- */
-typedef struct cmyth_posmap *cmyth_posmap_t;
-
-/**
- * \deprecated Use of cmyth_rec_num is \b deprecated.
- */
-struct cmyth_rec_num;
-
-/**
- * \deprecated Use of cmyth_rec_num_t is \b deprecated.
- */
-typedef struct cmyth_rec_num *cmyth_rec_num_t;
-
-/**
- * \deprecated Use of cmyth_tvguide_progs is \b deprecated.
- */
-struct cmyth_tvguide_progs;
-
-/**
- * \deprecated Use of cmyth_tvguide_progs_t is \b deprecated.
- */
-typedef struct cmyth_tvguide_progs *cmyth_tvguide_progs_t;
-
-/**
- * \deprecated Use of cmyth_rec_num_t is \b deprecated.
- */
-extern cmyth_rec_num_t cmyth_rec_num_create(void);
-
-/**
- * \deprecated Use of cmyth_rec_num_t is \b deprecated.
- */
-extern cmyth_rec_num_t cmyth_rec_num_get(char *host,
-					 unsigned short port,
-					 unsigned id);
-
-/**
- * \deprecated Use of cmyth_rec_num_t is \b deprecated.
- */
-extern char *cmyth_rec_num_string(cmyth_rec_num_t rn);
-
-/**
- * \deprecated Use of posmaps are \b deprecated.
- */
-extern cmyth_posmap_t cmyth_posmap_create(void);
-
-/**
- * \deprecated Use of cmyth_rec_num_t is \b deprecated.
- */
-extern int cmyth_proginfo_get_recorder_num(cmyth_conn_t control,
-					   cmyth_rec_num_t rnum,
-					   cmyth_proginfo_t prog);
-
-#define CMYTH_NUM_SORTS 2
-
-/**
- * \deprecated Use of cmyth_recorder_start_stream is \b deprecated.
- */
-extern int cmyth_recorder_start_stream(cmyth_recorder_t rec);
-
-/**
- * \deprecated Use of cmyth_recorder_end_stream is \b deprecated.
- */
-extern int cmyth_recorder_end_stream(cmyth_recorder_t rec);
-
-#if defined(HAS_MYSQL)
-/**
- * Retrieve the tuner type of a recorder.
- * \deprecated This function seems quite useless.
- */
-extern int cmyth_tuner_type_check(cmyth_database_t db, cmyth_recorder_t rec, int check_tuner_enabled);
-
-extern int cmyth_database_set_host(cmyth_database_t db, char *host);
-extern int cmyth_database_set_user(cmyth_database_t db, char *user);
-extern int cmyth_database_set_pass(cmyth_database_t db, char *pass);
-extern int cmyth_database_set_name(cmyth_database_t db, char *name);
-#endif /* HAS_MYSQL */
-
-/**
- * \deprecated Use of cmyth_ringbuf_pathname is \b deprecated.
- */
-extern char * cmyth_ringbuf_pathname(cmyth_recorder_t rec);
-
-/**
- * \deprecated Use of cmyth_proginfo_get_detail is \b deprecated.
- */
-extern cmyth_proginfo_t cmyth_proginfo_get_detail(cmyth_conn_t control,
-						  cmyth_proginfo_t p);
-
-/**
- * \deprecated Use of cmyth_file_data is \b deprecated.
- */
-extern cmyth_conn_t cmyth_file_data(cmyth_file_t file);
-
-/**
- * \deprecated Use of cmyth_file_set_closed_callback is \b deprecated.
- */
-extern void cmyth_file_set_closed_callback(cmyth_file_t file,
-					   void (*callback)(cmyth_file_t));
-
-/**
- * \deprecated Use of PROGRAM_ADJUST is \b deprecated.
- */
-#define PROGRAM_ADJUST  3600
-
-/**
- * \deprecated Use of cmyth_get_delete_list is \b deprecated.
- */
-extern int cmyth_get_delete_list(cmyth_conn_t, char *, cmyth_proglist_t);
-
-/**
- * Start recording live TV on a recorder.
- * \note This function should be replaced with something consistent
- *       with the rest of the API.  Probably cmyth_livetv_start() that takes
- *       a cmyth_conn_t argument without all the other arguments.
- */
-extern cmyth_recorder_t cmyth_spawn_live_tv(cmyth_recorder_t rec,
-					    unsigned buflen,
-					    int tcp_rcvbuf,
-					    void (*prog_update_callback)(cmyth_proginfo_t),
-					    char ** err);
-
-/**@}*/
-
-/*
- * -----------------------------------------------------------------
  * Reserved items (these may be implemented someday)
  * -----------------------------------------------------------------
  */
@@ -1985,14 +1817,6 @@ extern long long cmyth_recorder_get_free_space(cmyth_recorder_t rec);
  */
 extern long long cmyth_recorder_get_keyframe_pos(cmyth_recorder_t rec,
 						 unsigned long keynum);
-
-/**
- * \b Unimplemented.  Do not use.
- * \note This item may either be implemented or removed in the future.
- */
-extern cmyth_posmap_t cmyth_recorder_get_position_map(cmyth_recorder_t rec,
-						      unsigned long start,
-						      unsigned long end);
 
 /**
  * \b Unimplemented.  Do not use.

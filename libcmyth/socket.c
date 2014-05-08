@@ -2821,54 +2821,6 @@ cmyth_rcv_proglist(cmyth_conn_t conn, int *err, cmyth_proglist_t buf,
 }
 
 /*
- * cmyth_rcv_keyframe(cmyth_conn_t conn, int *err, cmyth_keyframe_t buf,
- *                    int count)
- * 
- * Scope: PRIVATE (mapped to __cmyth_rcv_keyframe)
- *
- * Description
- *
- * Receive a keyframe description from a list of tokens in a MythTV
- * Protocol message.  Tokens in MythTV Protocol messages are separated
- * by the string: []:[] or terminated by running out of message.  Up
- * to 'count' Bytes will be consumed from the socket specified by
- * 'conn' (stopping when a separator is seen or 'count' is exhausted).
- * The keyframe structure specified in 'buf' will be filled out.  If
- * an error is encountered and 'err' is not NULL, an indication of the
- * nature of the error will be recorded by placing an error code in
- * the location pointed to by 'err'.  If all goes well, 'err' wil be
- * set to 0.
- *
- * Return Value:
- *
- * A value >=0 indicating the number of bytes consumed.
- *
- * Error Codes:
- *
- * In addition to system call error codes, the following errors may be
- * placed in 'err':
- *
- * ERANGE       The token received did not parse into a keyframe
- *
- * EINVAL       The token received is not numeric or is signed
- */
-int
-cmyth_rcv_keyframe(cmyth_conn_t conn, int *err, cmyth_keyframe_t buf,
-		   int count)
-{
-	int tmp_err;
-
-	if (!err) {
-		err = &tmp_err;
-	}
-	/*
-	 * For now this is unimplemented.
-	 */
-	*err = ENOSYS;
-	return 0;
-}
-
-/*
  * cmyth_rcv_freespace(cmyth_conn_t conn, cmyth_freespace_t buf, int count)
  * 
  * Scope: PRIVATE (mapped to __cmyth_rcv_freespace)

@@ -348,34 +348,6 @@ cmyth_recorder_get_keyframe_pos(cmyth_recorder_t rec, unsigned long keynum)
 }
 
 /*
- * cmyth_recorder_get_position_map(cmyth_recorder_t rec,
- *                                 cmyth_posmap_t map,
- *                                 long start,
- *                                 long end)
- * 
- * Scope: PUBLIC
- *
- * Description
- *
- * Request a list of {keynum, position} pairs starting at keynum
- * 'start' and ending with keynum 'end' from the current recording on
- * recorder 'rec'.
- *
- * Return Value:
- *
- * Success: 0
- *
- * Failure: -(ERRNO)
- */
-cmyth_posmap_t
-cmyth_recorder_get_position_map(cmyth_recorder_t rec,
-				unsigned long start,
-				unsigned long end)
-{
-	return NULL;
-}
-
-/*
  * cmyth_recorder_get_recording(cmyth_recorder_t rec)
  * 
  * Scope: PUBLIC
@@ -1549,50 +1521,6 @@ cmyth_recorder_done_ringbuf(cmyth_recorder_t rec)
 	pthread_mutex_unlock(&rec->rec_conn->conn_mutex);
 
 	return ret;
-}
-
-/*
- * cmyth_recorder_start_stream(cmyth_recorder_t rec)
- *
- * Scope: PUBLIC
- *
- * Description:
- *
- * Request the recorder 'rec' to start a stream of the current
- * recording (or live-tv).
- *
- * Return Value:
- *
- * Success: 0
- *
- * Failure: -(ERRNO)
- */
-int
-cmyth_recorder_start_stream(cmyth_recorder_t rec)
-{
-	return -ENOSYS;
-}
-
-/*
- * cmyth_recorder_end_stream(cmyth_recorder_t rec)
- *
- * Scope: PUBLIC
- *
- * Description:
- *
- * Request the recorder 'rec' to end a stream of the current recording
- * (or live-tv).
- *
- * Return Value:
- *
- * Success: 0
- *
- * Failure: -(ERRNO)
- */
-int
-cmyth_recorder_end_stream(cmyth_recorder_t rec)
-{
-	return -ENOSYS;
 }
 
 char*

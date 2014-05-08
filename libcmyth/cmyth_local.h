@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2013, Eric Lund, Jon Gettler
+ *  Copyright (C) 2004-2014, Eric Lund, Jon Gettler
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -191,7 +191,6 @@ struct cmyth_file {
 	cmyth_conn_t file_data;		/**< backend connection */
 	long file_id;			/**< file identifier */
 	/** callback when close is completed */
-	void (*closed_callback)(cmyth_file_t file);
 	uint64_t file_start;	/**< file start offest */
 	uint64_t file_length;	/**< file length */
 	uint64_t file_pos;	/**< current file position */
@@ -210,21 +209,19 @@ struct cmyth_ringbuf {
 	int ringbuf_port;
 };
 
-struct cmyth_rec_num {
-	char *recnum_host;
-	unsigned short recnum_port;
-	unsigned int recnum_id;
-};
-
 struct cmyth_keyframe {
 	unsigned long keyframe_number;
 	uint64_t keyframe_pos;
 };
 
+typedef struct cmyth_keyframe *cmyth_keyframe_t;
+
 struct cmyth_posmap {
 	unsigned int posmap_count;
 	struct cmyth_keyframe **posmap_list;
 };
+
+typedef struct cmyth_posmap *cmyth_posmap_t;
 
 struct cmyth_freespace {
 	uint64_t freespace_total;

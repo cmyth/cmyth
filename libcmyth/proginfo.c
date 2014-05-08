@@ -395,12 +395,12 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 	unsigned int len = ((2 * CMYTH_LONGLONG_LEN) + 
 			    (6 * CMYTH_TIMESTAMP_LEN) +
 			    (16 * CMYTH_LONG_LEN));
-	char start_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char end_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char rec_start_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char rec_end_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char originalairdate[CMYTH_TIMESTAMP_LEN + 1];
-	char lastmodified[CMYTH_TIMESTAMP_LEN + 1];
+	char *start_ts = NULL;
+	char *end_ts = NULL;
+	char *rec_start_ts = NULL;
+	char *rec_end_ts = NULL;
+	char *originalairdate = NULL;
+	char *lastmodified = NULL;
 	int err = 0;
 	int count = 0;
 	long r = 0;
@@ -442,34 +442,6 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 		return -ENOMEM;
 	}
 
-	if(control->conn_version < 14)
-	{
-	    cmyth_timestamp_to_string(start_ts, prog->proginfo_start_ts);
-	    cmyth_timestamp_to_string(end_ts, prog->proginfo_end_ts);
-	    cmyth_timestamp_to_string(rec_start_ts,
-	    			      prog->proginfo_rec_start_ts);
-	    cmyth_timestamp_to_string(rec_end_ts, prog->proginfo_rec_end_ts);
-	    cmyth_timestamp_to_string(originalairdate,
-				      prog->proginfo_originalairdate);
-	    cmyth_timestamp_to_string(lastmodified,
-				      prog->proginfo_lastmodified);
-	}
-	else
-	{
-	    cmyth_datetime_to_string(start_ts, prog->proginfo_start_ts);
-	    cmyth_datetime_to_string(end_ts, prog->proginfo_end_ts);
-	    cmyth_datetime_to_string(rec_start_ts, prog->proginfo_rec_start_ts);
-	    cmyth_datetime_to_string(rec_end_ts, prog->proginfo_rec_end_ts);
-	    cmyth_datetime_to_string(originalairdate,
-				     prog->proginfo_originalairdate);
-	    cmyth_datetime_to_string(lastmodified, prog->proginfo_lastmodified);
-	}
-
-	if(control->conn_version > 32) {
-	    cmyth_timestamp_to_isostring(originalairdate,
-				 prog->proginfo_originalairdate);
-	}
-
 	if(control->conn_version < 12)
 	{
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -477,6 +449,30 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 			  __FUNCTION__, control->conn_version);
 		return -EINVAL;
 	}
+	if(control->conn_version < 14)
+	{
+		start_ts = cmyth_timestamp_string(prog->proginfo_start_ts);
+		end_ts = cmyth_timestamp_string(prog->proginfo_end_ts);
+		rec_start_ts = cmyth_timestamp_string(prog->proginfo_rec_start_ts);
+		rec_end_ts = cmyth_timestamp_string(prog->proginfo_rec_end_ts);
+		originalairdate = cmyth_timestamp_string(prog->proginfo_originalairdate);
+		lastmodified = cmyth_timestamp_string(prog->proginfo_lastmodified);
+	}
+	else
+	{
+		start_ts = cmyth_datetime_string(prog->proginfo_start_ts);
+		end_ts = cmyth_datetime_string(prog->proginfo_end_ts);
+		rec_start_ts = cmyth_datetime_string(prog->proginfo_rec_start_ts);
+		rec_end_ts = cmyth_datetime_string(prog->proginfo_rec_end_ts);
+		originalairdate = cmyth_datetime_string(prog->proginfo_originalairdate);
+		lastmodified = cmyth_datetime_string(prog->proginfo_lastmodified);
+	}
+
+	if(control->conn_version > 32) {
+		ref_release(originalairdate);
+		originalairdate = cmyth_timestamp_isostring(prog->proginfo_originalairdate);
+	}
+
 	buf_extend("%s 0[]:[]", cmd);
 	buf_extend("%s[]:[]",  prog->proginfo_title);
 	buf_extend("%s[]:[]",  prog->proginfo_subtitle);
@@ -563,6 +559,13 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 		buf_extend("%ld[]:[]", prog->proginfo_partnumber);
 		buf_extend("%ld[]:[]", prog->proginfo_parttotal);
 	}
+
+	ref_release(start_ts);
+	ref_release(end_ts);
+	ref_release(rec_start_ts);
+	ref_release(rec_end_ts);
+	ref_release(originalairdate);
+	ref_release(lastmodified);
 
 	pthread_mutex_lock(&control->conn_mutex);
 
@@ -691,33 +694,6 @@ int
 cmyth_proginfo_forget_recording(cmyth_conn_t control, cmyth_proginfo_t prog)
 {
 	return proginfo_command(control, prog, "FORGET_RECORDING", NULL);
-}
-
-/*
- * cmyth_proginfo_get_recorder_num(cmyth_conn_t control,
- *                                 cmyth_rec_num_t rnum,
- *                                 cmyth_proginfo_t prog)
- * 
- * Scope: PUBLIC
- *
- * Description
- *
- * Make a request on the control connection 'control' to obtain the
- * recorder number for the program 'prog' and fill out 'rnum' with the
- * information.
- *
- * Return Value:
- *
- * Success: 0
- *
- * Failure: -(ERRNO)
- */
-int
-cmyth_proginfo_get_recorder_num(cmyth_conn_t control,
-				cmyth_rec_num_t rnum,
-				cmyth_proginfo_t prog)
-{
-	return -ENOSYS;
 }
 
 /*
@@ -1351,12 +1327,12 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	unsigned int len = ((2 * CMYTH_LONGLONG_LEN) + 
 			    (6 * CMYTH_TIMESTAMP_LEN) +
 			    (16 * CMYTH_LONG_LEN));
-	char start_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char end_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char rec_start_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char rec_end_ts[CMYTH_TIMESTAMP_LEN + 1];
-	char originalairdate[CMYTH_TIMESTAMP_LEN + 1];
-	char lastmodified[CMYTH_TIMESTAMP_LEN + 1];
+	char *start_ts = NULL;
+	char *end_ts = NULL;
+	char *rec_start_ts = NULL;
+	char *rec_end_ts = NULL;
+	char *originalairdate = NULL;
+	char *lastmodified = NULL;
 	int err = 0;
 	int ret = -1;
 	int cur = 0;
@@ -1397,34 +1373,6 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		return -ENOMEM;
 	}
 
-	if(control->conn_version < 14)
-	{
-	    cmyth_timestamp_to_string(start_ts, prog->proginfo_start_ts);
-	    cmyth_timestamp_to_string(end_ts, prog->proginfo_end_ts);
-	    cmyth_timestamp_to_string(rec_start_ts,
-	    				prog->proginfo_rec_start_ts);
-	    cmyth_timestamp_to_string(rec_end_ts, prog->proginfo_rec_end_ts);
-	    cmyth_timestamp_to_string(originalairdate,
-				  prog->proginfo_originalairdate);
-	    cmyth_timestamp_to_string(lastmodified,
-	    				prog->proginfo_lastmodified);
-	}
-	else
-	{
-	    cmyth_datetime_to_string(start_ts, prog->proginfo_start_ts);
-	    cmyth_datetime_to_string(end_ts, prog->proginfo_end_ts);
-	    cmyth_datetime_to_string(rec_start_ts, prog->proginfo_rec_start_ts);
-	    cmyth_datetime_to_string(rec_end_ts, prog->proginfo_rec_end_ts);
-	    cmyth_datetime_to_string(originalairdate,
-				     prog->proginfo_originalairdate);
-	    cmyth_datetime_to_string(lastmodified, prog->proginfo_lastmodified);
-	}
-	if(control->conn_version > 32)
-	{
-	    cmyth_timestamp_to_isostring(originalairdate,
-	                         prog->proginfo_originalairdate);
-        }				 
-
 	if (control->conn_version < 12)
 	{
 		cmyth_dbg(CMYTH_DBG_ERROR,
@@ -1432,6 +1380,31 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 			  __FUNCTION__, control->conn_version);
 		return -EINVAL;
 	}
+
+	if(control->conn_version < 14)
+	{
+		start_ts = cmyth_timestamp_string(prog->proginfo_start_ts);
+		end_ts = cmyth_timestamp_string(prog->proginfo_end_ts);
+		rec_start_ts = cmyth_timestamp_string(prog->proginfo_rec_start_ts);
+		rec_end_ts = cmyth_timestamp_string(prog->proginfo_rec_end_ts);
+		originalairdate = cmyth_timestamp_string(prog->proginfo_originalairdate);
+		lastmodified = cmyth_timestamp_string(prog->proginfo_lastmodified);
+	}
+	else
+	{
+		start_ts = cmyth_datetime_string(prog->proginfo_start_ts);
+		end_ts = cmyth_datetime_string(prog->proginfo_end_ts);
+		rec_start_ts = cmyth_datetime_string(prog->proginfo_rec_start_ts);
+		rec_end_ts = cmyth_datetime_string(prog->proginfo_rec_end_ts);
+		originalairdate = cmyth_datetime_string(prog->proginfo_originalairdate);
+		lastmodified = cmyth_datetime_string(prog->proginfo_lastmodified);
+	}
+	if(control->conn_version > 32)
+	{
+		ref_release(originalairdate);
+		originalairdate = cmyth_timestamp_isostring(prog->proginfo_originalairdate);
+        }				 
+
 	buf_extend("%s %s[]:[]0[]:[]", cmd, host);
 	buf_extend("%s[]:[]",  prog->proginfo_title);
 	buf_extend("%s[]:[]",  prog->proginfo_subtitle);
@@ -1519,6 +1492,13 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 		buf_extend("%ld[]:[]", prog->proginfo_parttotal);
 	}
 
+	ref_release(start_ts);
+	ref_release(end_ts);
+	ref_release(rec_start_ts);
+	ref_release(rec_end_ts);
+	ref_release(originalairdate);
+	ref_release(lastmodified);
+
 	if ((err = cmyth_send_message(control, buf)) < 0) {
 		cmyth_dbg(CMYTH_DBG_ERROR,
 			  "%s: cmyth_send_message() failed (%d)\n",
@@ -1530,6 +1510,8 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	ret = 0;
 
     out:
+	ref_release(start_ts);
+
 	return ret;
 }
 
@@ -1776,29 +1758,3 @@ cmyth_proginfo_chanicon(cmyth_proginfo_t prog)
 	}
 	return ref_hold(prog->proginfo_chanicon);
 }
-
-int 
-cmyth_get_delete_list(cmyth_conn_t conn, char * msg, cmyth_proglist_t prog)
-{
-        int err=0;
-        int count;
-        int prog_count=0;
-
-        if (!conn) {
-                cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n", __FUNCTION__);
-                return -1;
-        }
-        pthread_mutex_lock(&conn->conn_mutex);
-        if ((err = cmyth_send_message(conn, msg)) < 0) {
-                fprintf (stderr, "ERROR %d \n",err);
-                cmyth_dbg(CMYTH_DBG_ERROR,
-                        "%s: cmyth_send_message() failed (%d)\n",__FUNCTION__,err);
-                return err;
-        }
-        count = cmyth_rcv_length(conn);
-        cmyth_rcv_proglist(conn, &err, prog, count);
-        prog_count=cmyth_proglist_get_count(prog);
-        pthread_mutex_unlock(&conn->conn_mutex);
-        return prog_count;
-}
-

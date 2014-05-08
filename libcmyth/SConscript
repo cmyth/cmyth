@@ -10,8 +10,8 @@ prefix = env['PREFIX']
 
 name = 'cmyth'
 major = 0
-minor = 2
-branch = 6
+minor = 3
+branch = 0
 fork = 0
 
 version = [ major, minor, branch, fork ]
@@ -22,8 +22,8 @@ libver = env.GenVersion('version.h',
 libs = [ 'refmem' ]
 
 src = [ 'bookmark.c', 'connection.c', 'debug.c', 'event.c',
-        'file.c', 'freespace.c', 'keyframe.c',
-        'posmap.c', 'proginfo.c', 'proglist.c', 'rec_num.c', 
+        'file.c', 'freespace.c',
+        'posmap.c', 'proginfo.c', 'proglist.c',
         'recorder.c', 'ringbuf.c', 'socket.c', 'timestamp.c',
         'livetv.c', 'commbreak.c', 'version.c', 'chanlist.c', 'channel.c',
         'chain.c' ]

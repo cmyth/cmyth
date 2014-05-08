@@ -51,55 +51,6 @@ cmyth_database_init(char *host, char *db_name, char *user, char *pass)
 	return rtrn;
 }
 
-int
-cmyth_database_set_host(cmyth_database_t db, char *host)
-{
-	cmyth_database_close(db);
-	ref_release(db->db_host);
-	db->db_host = ref_strdup(host);
-	if(! db->db_host)
-	    return 0;
-	else
-	    return 1;
-}
-
-int
-cmyth_database_set_user(cmyth_database_t db, char *user)
-{
-	cmyth_database_close(db);
-	ref_release(db->db_user);
-	db->db_user = ref_strdup(user);
-	if(! db->db_user)
-	    return 0;
-	else
-	    return 1;
-}
-
-int
-cmyth_database_set_pass(cmyth_database_t db, char *pass)
-{
-	cmyth_database_close(db);
-	ref_release(db->db_user);
-	db->db_pass = ref_strdup(pass);
-	if(! db->db_pass)
-	    return 0;
-	else
-	    return 1;
-}
-
-int
-cmyth_database_set_name(cmyth_database_t db, char *name)
-{
-	cmyth_database_close(db);
-	ref_release(db->db_name);
-	db->db_name = ref_strdup(name);
-	if(! db->db_name)
-	    return 0;
-	else
-	    return 1;
-}
-
-
 static int
 cmyth_db_check_connection(cmyth_database_t db)
 {
@@ -649,16 +600,18 @@ cmyth_update_bookmark_setting(cmyth_database_t db, cmyth_proginfo_t prog)
 	MYSQL_RES *res = NULL;
 	const char *query_str = "UPDATE recorded SET bookmark = 1 WHERE chanid = ? AND starttime = ?";
 	cmyth_mysql_query_t * query;
-	char starttime[CMYTH_TIMESTAMP_LEN + 1];
+	char *starttime;
 
-	cmyth_timestamp_to_string(starttime, prog->proginfo_rec_start_ts);
+	starttime = cmyth_timestamp_string(prog->proginfo_rec_start_ts);
 	query = cmyth_mysql_query_create(db,query_str);
 	if (cmyth_mysql_query_param_long(query, prog->proginfo_chanId) < 0
 		|| cmyth_mysql_query_param_str(query, starttime) < 0 ) {
 		cmyth_dbg(CMYTH_DBG_ERROR,"%s, binding of query parameters failed! Maybe we're out of memory?\n", __FUNCTION__);
 		ref_release(query);
+		ref_release(starttime);
 		return -1;
 	}
+	ref_release(starttime);
 	res = cmyth_mysql_query_result(query);
 	ref_release(query);
 	if (res == NULL) {
@@ -678,9 +631,9 @@ cmyth_get_bookmark_mark(cmyth_database_t db, cmyth_proginfo_t prog, long long bk
 	int rows = 0;
 	long long mark=0;
 	int rectype = 0;
-	char start_ts_dt[CMYTH_TIMESTAMP_LEN + 1];
+	char *start_ts_dt;
 	cmyth_mysql_query_t * query;
-	cmyth_timestamp_to_string(start_ts_dt, prog->proginfo_rec_start_ts);
+	start_ts_dt = cmyth_timestamp_string(prog->proginfo_rec_start_ts);
 	query = cmyth_mysql_query_create(db,query_str);
 
 	if (cmyth_mysql_query_param_long(query, prog->proginfo_chanId) < 0
@@ -689,8 +642,10 @@ cmyth_get_bookmark_mark(cmyth_database_t db, cmyth_proginfo_t prog, long long bk
 		) {
 		cmyth_dbg(CMYTH_DBG_ERROR,"%s, binding of query parameters failed! Maybe we're out of memory?\n", __FUNCTION__);
 		ref_release(query);
+		ref_release(start_ts_dt);
 		return -1;
 	}
+	ref_release(start_ts_dt);
 	res = cmyth_mysql_query_result(query);
 	ref_release(query);
 	if (res == NULL) {
@@ -956,48 +911,6 @@ cmyth_mysql_get_commbreak_list(cmyth_database_t db, int chanid, char * start_ts_
 	mysql_free_result(res);
 	cmyth_dbg(CMYTH_DBG_ERROR, "%s: COMMBREAK rows= %d\n", __FUNCTION__, rows);
 	return rows;
-}
-
-int
-cmyth_tuner_type_check(cmyth_database_t db, cmyth_recorder_t rec, int check_tuner_type) {
-	MYSQL_RES *res=NULL;
-	MYSQL_ROW row;
-	const char * query_str = "SELECT cardtype from capturecard WHERE cardid=?";
-	cmyth_mysql_query_t * query;
-
-	if ( check_tuner_type == 0 ) {
-		cmyth_dbg(CMYTH_DBG_ERROR,"MythTV Tuner check not enabled in Mythtv Options\n");
-		return (1);
-	}
-	
-
-	query = cmyth_mysql_query_create(db,query_str);
-	if (cmyth_mysql_query_param_uint(query,rec->rec_id) < 0) {
-		cmyth_dbg(CMYTH_DBG_ERROR,"%s, binding of query failed\n",__FUNCTION__);
-		ref_release(query);
-		return -1;
-	}
-	res = cmyth_mysql_query_result(query);
-
-	if(res == NULL) {
-		cmyth_dbg(CMYTH_DBG_ERROR,"%s, finalisation/execution\n",__FUNCTION__);
-		return -1;
-	}
-	row = mysql_fetch_row(res);
-	ref_release(query);
-	mysql_free_result(res);
-	if (strcmp(row[0],"MPEG") == 0) {
-		return (1); //return the first available MPEG tuner
-	}
-	else if (strcmp(row[0],"HDHOMERUN") == 0) {
-		return (1); //return the first available MPEG2TS tuner
-	}
-	else if (strcmp(row[0],"DVB") == 0) {
-		return (1); //return the first available DVB tuner
-	}
-	else {
-		return (0);
-	}
 }
 
 int

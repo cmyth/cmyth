@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2004-2010, Eric Lund
+ *  Copyright (C) 2004-2014, Eric Lund
  *  http://www.mvpmc.org/
  *
  *  This library is free software; you can redistribute it and/or
@@ -266,99 +266,77 @@ cmyth_timestamp_to_unixtime(cmyth_timestamp_t ts)
 }
 
 /*
- * cmyth_timestamp_to_string(char *str, cmyth_timestamp_t ts)
+ * cmyth_timestamp_string(cmyth_timestamp_t ts)
  * 
  * Scope: PUBLIC
  *
  * Description
  *
- * Create a string from the timestamp structure 'ts' and put it in the
- * user supplied buffer 'str'.  The size of 'str' must be
- * CMYTH_TIMESTAMP_LEN + 1 or this will overwrite beyond 'str'.
+ * Create a string from the timestamp structure 'ts'.
  * 
  *
  * Return Value:
  *
- * Success: 0
+ * Success: a reference counted string
  *
- * Failure: -(ERRNO)
+ * Failure: NULL
  */
-int
-cmyth_timestamp_to_string(char *str, cmyth_timestamp_t ts)
+char*
+cmyth_timestamp_string(cmyth_timestamp_t ts)
 {
-	if (!str) {
-		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL output string provided\n",
-			  __FUNCTION__);
-		return -EINVAL;
-	}
 	if (!ts) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL timestamp provided\n",
 			  __FUNCTION__);
-		return -EINVAL;
+		return NULL;
 	}
-	sprintf(str,
-		"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
-		ts->timestamp_year,
-		ts->timestamp_month,
-		ts->timestamp_day,
-		ts->timestamp_hour,
-		ts->timestamp_minute,
-		ts->timestamp_second);
-	return 0;
+	return ref_sprintf("%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
+			   ts->timestamp_year,
+			   ts->timestamp_month,
+			   ts->timestamp_day,
+			   ts->timestamp_hour,
+			   ts->timestamp_minute,
+			   ts->timestamp_second);
 }
 
 /*
- * cmyth_timestamp_to_isostring(char *str, cmyth_timestamp_t ts)
+ * cmyth_timestamp_isostring(cmyth_timestamp_t ts)
  * 
  * Scope: PUBLIC
  *
  * Description
  *
- * Create a string from the timestamp structure 'ts' and put it in the
- * user supplied buffer 'str'.  The size of 'str' must be
- * CMYTH_TIMESTAMP_LEN + 1 or this will overwrite beyond 'str'.
+ * Create a string from the timestamp structure 'ts'.
  * 
  *
  * Return Value:
  *
- * Success: 0
+ * Success: a reference counted string
  *
- * Failure: -(ERRNO)
+ * Failure: NULL
  */
-int
-cmyth_timestamp_to_isostring(char *str, cmyth_timestamp_t ts)
+char*
+cmyth_timestamp_isostring(cmyth_timestamp_t ts)
 {
-	if (!str) {
-		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL output string provided\n",
-			  __FUNCTION__);
-		return -EINVAL;
-	}
 	if (!ts) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL timestamp provided\n",
 			  __FUNCTION__);
-		return -EINVAL;
+		return NULL;
 	}
-	sprintf(str,
-		"%4.4ld-%2.2ld-%2.2ld",
-		ts->timestamp_year,
-		ts->timestamp_month,
-		ts->timestamp_day);
-	return 0;
+	return ref_sprintf("%4.4ld-%2.2ld-%2.2ld",
+			   ts->timestamp_year,
+			   ts->timestamp_month,
+			   ts->timestamp_day);
 }
 
-int
-cmyth_timestamp_to_display_string(char *str, cmyth_timestamp_t ts,
-																	int time_format_12)
+char*
+cmyth_timestamp_display_string(cmyth_timestamp_t ts, int time_format_12)
 {
-	if (!str) {
-		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL output string provided\n",
-			  __FUNCTION__);
-		return -EINVAL;
-	}
+	char *str;
+
 	if (!ts) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL timestamp provided\n",
 			  __FUNCTION__);
-		return -EINVAL;
+		return NULL;
 	}
 	if (time_format_12)
 	{
@@ -372,63 +350,55 @@ cmyth_timestamp_to_display_string(char *str, cmyth_timestamp_t ts,
 		if (hour == 0)
 			hour = 12;
 
-		sprintf(str,
-			"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld %s",
-			ts->timestamp_year,
-			ts->timestamp_month,
-			ts->timestamp_day,
-			hour,
-			ts->timestamp_minute,
-			ts->timestamp_second,
-			pm ? "PM" : "AM");
+		str = ref_sprintf("%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld %s",
+				  ts->timestamp_year,
+				  ts->timestamp_month,
+				  ts->timestamp_day,
+				  hour,
+				  ts->timestamp_minute,
+				  ts->timestamp_second,
+				  pm ? "PM" : "AM");
 	}
 	else
 	{
-		sprintf(str,
-			"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
-			ts->timestamp_year,
-			ts->timestamp_month,
-			ts->timestamp_day,
-			ts->timestamp_hour,
-			ts->timestamp_minute,
-			ts->timestamp_second);
+		str = ref_sprintf("%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
+				  ts->timestamp_year,
+				  ts->timestamp_month,
+				  ts->timestamp_day,
+				  ts->timestamp_hour,
+				  ts->timestamp_minute,
+				  ts->timestamp_second);
 	}
-	return 0;
+	return str;
 }
 
 /*
- * cmyth_datetime_to_string(char *str, cmyth_timestamp_t ts)
+ * cmyth_datetime_string(cmyth_timestamp_t ts)
  * 
  * Scope: PUBLIC
  *
  * Description
  *
- * Create a string from the timestamp structure 'ts' and put it in the
- * user supplied buffer 'str'.  The size of 'str' must be
- * CMYTH_DATETIME_LEN + 1 or this will overwrite beyond 'str'.
+ * Create a string from the timestamp structure 'ts'.
  * 
  *
  * Return Value:
  *
- * Success: 0
+ * Success: a reference counted string
  *
- * Failure: -(ERRNO)
+ * Failure: NULL
  */
-int
-cmyth_datetime_to_string(char *str, cmyth_timestamp_t ts)
+char*
+cmyth_datetime_string(cmyth_timestamp_t ts)
 {
 	struct tm tm_datetime;
 	time_t t_datetime;
+	char *str;
 
-	if (!str) {
-		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL output string provided\n",
-			  __FUNCTION__);
-		return -EINVAL;
-	}
 	if (!ts) {
 		cmyth_dbg(CMYTH_DBG_ERROR, "%s: NULL timestamp provided\n",
 			  __FUNCTION__);
-		return -EINVAL;
+		return NULL;
 	}
 
 	memset(&tm_datetime, 0, sizeof(tm_datetime));
@@ -440,19 +410,10 @@ cmyth_datetime_to_string(char *str, cmyth_timestamp_t ts)
 	tm_datetime.tm_sec = ts->timestamp_second;
 	tm_datetime.tm_isdst = ts->timestamp_isdst;
 	t_datetime = mktime(&tm_datetime);
-	sprintf(str,
-		"%4.4ld-%2.2ld-%2.2ldT%2.2ld:%2.2ld:%2.2ld",
-		ts->timestamp_year,
-		ts->timestamp_month,
-		ts->timestamp_day,
-		ts->timestamp_hour,
-		ts->timestamp_minute,
-		ts->timestamp_second);
-	cmyth_dbg(CMYTH_DBG_ERROR, "original timestamp string: %s \n",str);
-	sprintf(str,"%lu",(unsigned long) t_datetime);
+	str = ref_sprintf("%lu",(unsigned long) t_datetime);
 	cmyth_dbg(CMYTH_DBG_ERROR, "time in seconds: %s \n",str);
 	
-	return 0;
+	return str;
 }
 
 
