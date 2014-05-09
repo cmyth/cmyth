@@ -251,15 +251,14 @@ get_livetv(cmyth_conn_t control, int channels, char *channel,
 
 		if (prog) {
 			char *channame = cmyth_proginfo_channame(prog);
-			char *name = strdup(channame);
 			char *p;
 
-			while ((p=strchr(name, ' ')) != NULL) {
+			while ((p=strchr(channame, ' ')) != NULL) {
 				*p = '_';
 			}
 
 			snprintf(filename, sizeof(filename),
-				 "livetv_%.2d-%s.mpg", i, name);
+				 "livetv_%.2d-%s.mpg", i, channame);
 
 			ref_release(channame);
 		} else {
