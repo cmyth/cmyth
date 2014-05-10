@@ -879,7 +879,7 @@ static int ga_all(struct path_info *info, struct stat *stbuf)
 			pn = cmyth_proginfo_pathname(prog);
 			debug("%s(): file '%s' len %lld\n",
 			      __FUNCTION__, tmp, len);
-			stbuf->st_size = strlen(pn) + 8;
+			stbuf->st_size = strlen(pn);
 			ts = cmyth_proginfo_rec_end(prog);
 			t = cmyth_timestamp_to_unixtime(ts);
 			stbuf->st_atime = t;
@@ -1166,6 +1166,8 @@ static int myth_readlink(const char *path, char *buf, size_t size)
 
 		if (strcmp(tmp, info.file) == 0) {
 			snprintf(tmp, sizeof(tmp), "../files%s", pn);
+
+			memset(buf, 0, size);
 
 			n = (strlen(tmp) > size) ? size : strlen(tmp);
 			strncpy(buf, tmp, n);
