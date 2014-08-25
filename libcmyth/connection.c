@@ -1452,14 +1452,14 @@ cmyth_conn_get_setting_unlocked(cmyth_conn_t conn, const char* hostname, const c
 	int count, err;
 	char* result = NULL;
 
-	if(conn->conn_version < 17) {
-		cmyth_dbg(CMYTH_DBG_ERROR, "%s: protocol version doesn't support QUERY_SETTING\n",
+	if (!conn) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
 			  __FUNCTION__);
 		return NULL;
 	}
 
-	if (!conn) {
-		cmyth_dbg(CMYTH_DBG_ERROR, "%s: no connection\n",
+	if(conn->conn_version < 17) {
+		cmyth_dbg(CMYTH_DBG_ERROR, "%s: protocol version doesn't support QUERY_SETTING\n",
 			  __FUNCTION__);
 		return NULL;
 	}
