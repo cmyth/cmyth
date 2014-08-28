@@ -1555,7 +1555,7 @@ cmyth_proginfo_fill(cmyth_conn_t control, cmyth_proginfo_t prog)
 	pthread_mutex_lock(&control->conn_mutex);
 
 	length = prog->proginfo_Length;
-	if ((ret=fill_command(control, prog, "FILL_PROGRAM_INFO") != 0))
+	if ((ret=fill_command(control, prog, "FILL_PROGRAM_INFO")) != 0)
 		goto out;
 
 	count = cmyth_rcv_length(control);
