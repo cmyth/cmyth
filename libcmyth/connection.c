@@ -57,6 +57,9 @@ static myth_protomap_t protomap[] = {
 	{78, "IceBurns"},
 	{79, "BasaltGiant"},
 	{80, "TaDah!"},
+	{81, "MultiRecDos"},
+	{82, "IdIdO"},
+	{83, "BreakingGlass"},
 	{0, ""}
 };
 

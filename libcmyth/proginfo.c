@@ -286,6 +286,8 @@ cmyth_proginfo_create(void)
 	ret->proginfo_year = 0;
 	ret->proginfo_partnumber = 0;
 	ret->proginfo_parttotal = 0;
+	ret->proginfo_category_type = 0;
+	ret->proginfo_recordedid = 0;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 
@@ -382,6 +384,8 @@ cmyth_proginfo_dup(cmyth_proginfo_t p)
 	ret->proginfo_year = p->proginfo_year;
 	ret->proginfo_partnumber = p->proginfo_partnumber;
 	ret->proginfo_parttotal = p->proginfo_parttotal;
+	ret->proginfo_category_type = p->proginfo_category_type;
+	ret->proginfo_recordedid = p->proginfo_recordedid;
 	cmyth_dbg(CMYTH_DBG_DEBUG, "%s }\n", __FUNCTION__);
 	return ret;
 }
@@ -558,6 +562,12 @@ proginfo_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd,
 	if (control->conn_version >= 76) {
 		buf_extend("%ld[]:[]", prog->proginfo_partnumber);
 		buf_extend("%ld[]:[]", prog->proginfo_parttotal);
+	}
+	if (control->conn_version >= 79) {
+		buf_extend("%ld[]:[]", prog->proginfo_category_type);
+	}
+	if (control->conn_version >= 82) {
+		buf_extend("%ld[]:[]", prog->proginfo_recordedid);
 	}
 
 	ref_release(start_ts);
@@ -1490,6 +1500,12 @@ fill_command(cmyth_conn_t control, cmyth_proginfo_t prog, char *cmd)
 	if (control->conn_version >= 76) {
 		buf_extend("%ld[]:[]", prog->proginfo_partnumber);
 		buf_extend("%ld[]:[]", prog->proginfo_parttotal);
+	}
+	if (control->conn_version >= 79) {
+		buf_extend("%ld[]:[]", prog->proginfo_category_type);
+	}
+	if (control->conn_version >= 82) {
+		buf_extend("%ld[]:[]", prog->proginfo_recordedid);
 	}
 
 	ref_release(start_ts);

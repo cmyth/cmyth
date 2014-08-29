@@ -298,6 +298,8 @@ struct cmyth_proginfo {
 	unsigned short proginfo_year; /* new in v43 */
 	unsigned long proginfo_partnumber; /* new in v76 */
 	unsigned long proginfo_parttotal; /* new in v76 */
+	unsigned long proginfo_category_type; /* new in v79 */
+	unsigned long proginfo_recordedid; /* new in v82 */
 };
 
 struct cmyth_proglist {
