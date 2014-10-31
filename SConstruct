@@ -149,7 +149,7 @@ cflags = '-Wall -Wextra -Werror -Wno-unused-parameter'
 ldflags = ''
 
 vars = Variables('cmyth.conf')
-vars.Add('CC', '', 'gcc')
+vars.Add('CC', '', 'cc')
 vars.Add('LD', '', 'ld')
 vars.Add('CFLAGS', '', cflags)
 vars.Add('LDFLAGS', '', ldflags)
