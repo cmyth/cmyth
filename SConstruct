@@ -6,6 +6,8 @@
 import os
 import sys
 import string
+import shutil
+import atexit
 
 from os import pathsep
 
@@ -19,12 +21,7 @@ def find_binary(self, filename):
         name = os.path.join(i, filename)
         if os.path.isfile(name):
             return name
-    return ''
-
-def cmd_not_found(self, arg):
-    """Abort the build"""
-    print 'Error: %s not found!' % arg
-    env.Exit(1)
+    return None
 
 def shlibsuffix(self, major=-1, minor=-1, branch=-1, fork=-1):
     """Create the proper suffix for the shared library on the current OS."""
@@ -102,6 +99,7 @@ def install_shared(env, target, source, **kw):
     minor = version[1]
     branch = version[2]
     fork = version[3]
+    prefix = env['PREFIX']
     lib = env.Install(prefix + '/lib', source[0])
     if fork == 0:
         lib0 = lib
@@ -136,7 +134,6 @@ def gen_version(env, target, source=None, **kw):
 #
 env = Environment()
 
-env.AddMethod(cmd_not_found, 'cmd_not_found')
 env.AddMethod(find_binary, 'find_binary')
 env.AddMethod(shlibsuffix, 'shlibsuffix')
 env.AddMethod(soname, 'soname')
@@ -188,11 +185,11 @@ elif env['HAS_MYSQL'] == '':
     env = conf.Finish()
 
 if env['HAS_MYSQL'] == 'yes':
-    env.Append(CPPFLAGS = '-DHAS_MYSQL')
+    env.Append(CPPFLAGS = ' -DHAS_MYSQL')
 
 conf = Configure(env)
 if conf.CheckLib('c', 'arc4random_uniform', autoadd=0):
-    env.Append(CPPFLAGS = '-DHAS_ARC4RANDOM')
+    env.Append(CPPFLAGS = ' -DHAS_ARC4RANDOM')
 env = conf.Finish()
 
 #
@@ -206,23 +203,28 @@ builder = SCons.Builder.Builder(action = create_link)
 env.Append(BUILDERS = {"Symlink" : builder})
 
 #
-# Check the command line targets
-#
-build_cscope = False
-build_doxygen = False
-if 'cscope' in COMMAND_LINE_TARGETS:
-    build_cscope = True
-if 'doxygen' in COMMAND_LINE_TARGETS:
-    build_doxygen = True
-if 'all' in COMMAND_LINE_TARGETS:
-    build_doxygen = True
-    build_cscope = True
-
-#
 # Check for binaries that might be required
 #
 cs = env.find_binary('cscope')
 dox = env.find_binary('doxygen')
+
+#
+# Check the command line targets
+#
+do_distclean = env.GetOption('clean') and 'distclean' in COMMAND_LINE_TARGETS
+build_cscope = False
+build_doxygen = False
+if 'cscope' in COMMAND_LINE_TARGETS:
+    if cs == None:
+        raise SCons.Errors.StopError('cscope command not found!')
+    build_cscope = True
+if 'doxygen' in COMMAND_LINE_TARGETS:
+    if dox == None:
+        raise SCons.Errors.StopError('doxygen command not found!')
+    build_doxygen = True
+if 'all' in COMMAND_LINE_TARGETS:
+    build_doxygen = True
+    build_cscope = True
 
 #
 # Find the install prefix
@@ -262,70 +264,79 @@ all = targets
 #
 # cscope target
 #
-if build_cscope:
-    if cs != '':
-        cscope = env.Command([ 'cscope.out', 'cscope.files',
-                               'cscope.in.out', 'cscope.po.out' ],
-                               [ Glob('src/*.[ch]'),
-                                 Glob('lib*/*.[ch]'),
-                                 Glob('include/*.h'),
-                                 Glob('include/*/*.h') ],
-			     [ 'find . -name \*.c -or -name \*.h '\
+if (build_cscope and cs) or do_distclean:
+    cscope = env.Command([ 'cscope.out', 'cscope.files',
+                           'cscope.in.out', 'cscope.po.out' ],
+                         [ Glob('src/*.[ch]'),
+                           Glob('lib*/*.[ch]'),
+                           Glob('include/*.h'),
+                           Glob('include/*/*.h') ],
+                         [ 'find . -name \*.c -or -name \*.h '\
                                '> cscope.files',
-                               '%s -b -q -k' % cs ])
-        env.Alias('cscope', [cscope])
-        all += [cscope]
-    else:
-        if not env.GetOption('clean'):
-            env.cmd_not_found('cscope')
+                           '%s -b -q -k' % cs ])
+    env.Alias('cscope', [cscope])
+    all += [cscope]
 
 #
 # doxygen target
 #
-if build_doxygen:
-    if dox != '':
-        internal = env.Command([ 'doc/all/html/index.html' ],
-                               [ 'doc/Doxyfile.all',
-                                 Glob('src/*.[ch]'),
-                                 Glob('lib*/*.[ch]'),
-                                 Glob('include/*.h'),
-                                 Glob('include/*/*.h') ],
-                               [ '%s doc/Doxyfile.all' % dox ])
-        external = env.Command([ 'doc/api/html/index.html' ],
-                               [ 'doc/Doxyfile.api',
-                                 Glob('src/*.[ch]'),
-                                 Glob('include/*/*.h') ],
-                               [ '%s doc/Doxyfile.api' % dox ])
-        manpages = env.Command([ 'doc/man/man3/cmyth.h.3' ],
-                               [ 'doc/Doxyfile.man',
-                                 Glob('include/*/*.h') ],
-                               [ '%s doc/Doxyfile.man' % dox ])
-        doxygen = [ internal, external, manpages ]
-        env.Alias('doxygen', doxygen)
-        all += doxygen
-    else:
-        if not env.GetOption('clean'):
-            env.cmd_not_found('doxygen')
+if (build_doxygen and dox) or do_distclean:
+    internal = env.Command([ 'doc/all/html/index.html' ],
+                           [ 'doc/Doxyfile.all',
+                             Glob('src/*.[ch]'),
+                             Glob('lib*/*.[ch]'),
+                             Glob('include/*.h'),
+                             Glob('include/*/*.h') ],
+                           [ '%s doc/Doxyfile.all' % dox ])
+    external = env.Command([ 'doc/api/html/index.html' ],
+                           [ 'doc/Doxyfile.api',
+                             Glob('src/*.[ch]'),
+                             Glob('include/*/*.h') ],
+                           [ '%s doc/Doxyfile.api' % dox ])
+    manpages = env.Command([ 'doc/man/man3/cmyth.h.3' ],
+                           [ 'doc/Doxyfile.man',
+                             Glob('include/*/*.h') ],
+                           [ '%s doc/Doxyfile.man' % dox ])
+    doxygen = [ internal, external, manpages ]
+    env.Alias('doxygen', doxygen)
+    all += doxygen
 
 #
 # misc build targets
 #
 env.Alias('install', [prefix])
 env.Alias('all', all)
+if env.GetOption('clean'):
+    env.Alias('distclean', all)
 env.Default(targets)
 
 #
 # cleanup
 #
-if 'all' in COMMAND_LINE_TARGETS:
-    env.Clean(all, ['doc/all', 'doc/api', 'doc/man', 'cmyth.conf'])
-    env.Clean(all, [ 'config.log','.sconf_temp','.sconsign.dblite',
-                     'xcode/build' ])
-if 'doxygen' in COMMAND_LINE_TARGETS:
+if 'all' in COMMAND_LINE_TARGETS or do_distclean:
+    env.Clean(all, ['doc/all', 'doc/api', 'doc/man', 'xcode/build'])
+if 'doxygen' in COMMAND_LINE_TARGETS or do_distclean:
     env.Clean(all, ['doc/all', 'doc/api', 'doc/man'])
 
 if not env.GetOption('clean'):
     vars.Save('cmyth.conf', env)
+    if 'distclean' in COMMAND_LINE_TARGETS:
+        raise SCons.Errors.StopError('The distclean target is only valid for cleanup!')
 
-env.Clean('distclean', [ '.sconsign.dblite', '.sconf_temp', 'config.log',
-                         'cmyth.conf' ])
+def distclean():
+    print 'distclean: cleanup scons data'
+    files = [ '.sconsign.dblite', 'config.log', 'cmyth.conf' ]
+    dirs = [ '.sconf_temp' ]
+    for f in files:
+        try:
+            os.remove(f)
+        except:
+            pass
+    for d in dirs:
+        try:
+            shutil.rmtree(d)
+        except:
+            pass
+
+if env.GetOption('clean') and 'distclean' in COMMAND_LINE_TARGETS:
+    atexit.register(distclean)
